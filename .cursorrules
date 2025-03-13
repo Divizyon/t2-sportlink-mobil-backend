@@ -1,0 +1,161 @@
+# Cursor Rules for Express, TypeScript, and Node.js Development
+
+## Project Structure
+
+- Use a modular folder structure:
+
+  ```
+  src/
+  ├── config/         # Configuration files
+  ├── controllers/    # Request handlers
+  ├── middlewares/    # Express middlewares
+  ├── models/         # Data models
+  ├── routes/         # Route definitions
+  ├── services/       # Business logic
+  ├── types/          # TypeScript type definitions
+  ├── utils/          # Utility functions
+  └── app.ts          # Express application setup
+  ```
+
+- Keep related files close to each other
+- Separate business logic from route handlers
+- Use barrel files (index.ts) for cleaner imports
+
+## TypeScript Best Practices
+
+- Always define proper types and interfaces
+- Use type inference where appropriate
+- Avoid `any` type - use `unknown` when type is uncertain
+- Use union types instead of enums where possible
+- Create dedicated type definition files for complex types
+- Use generics for reusable components
+
+## Express Patterns
+
+- Use async/await with proper error handling
+- Implement a global error handler middleware
+- Structure route handlers:
+
+  ```typescript
+  // Define request and response types
+  interface CreateUserRequest {
+    body: {
+      name: string;
+      email: string;
+      password: string;
+    };
+  }
+
+  // Controller function
+  const createUser = async (
+    req: Request<{}, {}, CreateUserRequest["body"]>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      // Implementation
+      res.status(201).json({
+        /* response */
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  ```
+
+- Use middleware for cross-cutting concerns
+- Implement proper validation using libraries like Zod, Joi, or express-validator
+- Use dependency injection for services
+
+## Error Handling
+
+- Create custom error classes
+- Implement a consistent error response format
+- Use HTTP status codes correctly
+- Log errors with appropriate severity levels
+- Handle async errors with middleware:
+  ```typescript
+  const asyncHandler =
+    (fn: RequestHandler): RequestHandler =>
+    (req, res, next) => {
+      Promise.resolve(fn(req, res, next)).catch(next);
+    };
+  ```
+
+## API Design
+
+- Follow RESTful principles
+- Use plural nouns for resource endpoints
+- Version your API (e.g., `/api/v1/users`)
+- Implement proper pagination, filtering, and sorting
+- Use query parameters for filtering and pagination
+- Use proper HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Return appropriate status codes
+
+## Security
+
+- Validate and sanitize all user inputs
+- Implement rate limiting
+- Use HTTPS in production
+- Set security headers
+- Implement proper authentication and authorization
+- Never store sensitive data in code
+- Use environment variables for configuration
+
+## Code Style and Formatting
+
+- Use ESLint with TypeScript support
+- Configure Prettier for consistent formatting
+- Follow a consistent naming convention:
+  - camelCase for variables and functions
+  - PascalCase for classes and interfaces
+  - UPPER_SNAKE_CASE for constants
+- Use meaningful variable and function names
+- Keep functions small and focused
+- Document complex logic with comments
+- Use JSDoc for public APIs
+
+## Performance
+
+- Implement proper caching strategies
+- Use connection pooling for databases
+- Optimize database queries
+- Implement pagination for large data sets
+- Use compression middleware
+- Consider using worker threads for CPU-intensive tasks
+
+## Logging
+
+- Use a structured logging library
+- Include request IDs in logs
+- Log appropriate information (no sensitive data)
+- Implement different log levels
+- Configure proper log rotation
+
+## Deployment
+
+- Use Docker for containerization
+- Implement CI/CD pipelines
+- Use environment variables for configuration
+- Implement health check endpoints
+- Monitor application performance
+- Set up proper backup strategies
+
+## Dependencies
+
+- Keep dependencies up to date
+- Audit dependencies regularly
+- Lock dependency versions
+- Minimize the number of dependencies
+- Prefer well-maintained libraries
+
+## Documentation
+
+- Document API endpoints with OpenAPI/Swagger
+- Maintain a README with setup instructions
+- Document environment variables
+- Include examples for API usage
+
+!!!IMPORTANT!!!
+
+- Always respond in TURKISH 🇹🇷

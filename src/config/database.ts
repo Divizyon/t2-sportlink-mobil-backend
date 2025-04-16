@@ -6,6 +6,9 @@ export const query = async (_text: string, _params?: any[]) => {
   throw new Error('Direkt database sorgusu kullanım dışı. Supabase SDK kullanın.');
 };
 
+
+
+
 export const pool = {
   query: () => {
     throw new Error('Direkt pool kullanımı kullanım dışı. Supabase SDK kullanın.');

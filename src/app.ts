@@ -37,6 +37,40 @@ const apiRouter = express.Router();
 const API_PREFIX = process.env.API_PREFIX || '/api/v1';
 app.use(API_PREFIX, apiRouter);
 
+// Route'ları içe aktar
+import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes';
+
+// Route'ları apiRouter'a ekle
+apiRouter.use('/users', userRoutes);
+apiRouter.use('/auth', authRoutes);
+
+// Health check endpoint
+apiRouter.get("/health", async (_, res) => {
+  try {
+    // Supabase bağlantısını import et
+    const { supabase } = await import('./config/supabase');
+    
+    // Supabase bağlantısını kontrol et
+    const { error } = await supabase.from('user_logins').select().limit(1);
+    
+    res.json({
+      success: true,
+      status: 'healthy',
+      supabase: {
+        connected: !error,
+        error: error ? error.message : null
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Health check failed',
+      error: error.message
+    });
+  }
+});
+
 // Örnek endpoint
 apiRouter.get("/", (_, res) => {
   res.json({ 

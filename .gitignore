@@ -10,7 +10,7 @@ dist/
 build/
 
 # Environment variables
-.env
+# .env düşünülerek yorum satırı yapıldı
 .env.local
 .env.*.local
 

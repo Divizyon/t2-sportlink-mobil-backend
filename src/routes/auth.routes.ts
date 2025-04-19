@@ -20,6 +20,11 @@ const router = express.Router();
  *               - email
  *               - password
  *               - confirm_password
+ *               - first_name
+ *               - last_name
+ *               - phone
+ *               - default_location_latitude
+ *               - default_location_longitude
  *             properties:
  *               username:
  *                 type: string
@@ -32,12 +37,23 @@ const router = express.Router();
  *               confirm_password:
  *                 type: string
  *                 format: password
- *               profile_image:
+ *               first_name:
  *                 type: string
- *               interests:
- *                 type: array
- *                 items:
- *                   type: string
+ *               last_name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               profile_picture:
+ *                 type: string
+ *               default_location_latitude:
+ *                 type: number
+ *                 format: float
+ *               default_location_longitude:
+ *                 type: number
+ *                 format: float
+ *               role:
+ *                 type: string
+ *                 default: user
  *     responses:
  *       201:
  *         description: Kullanıcı kaydedildi

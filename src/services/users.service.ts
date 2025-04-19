@@ -38,6 +38,9 @@ export class UsersService extends PrismaService {
     // Şifreyi hashle
     const hashedPassword = await this.hashPassword(userData.password);
     
+    // Şu andaki zamanı alarak updated_at değerini belirle
+    const now = new Date();
+    
     return this.prismaClient.users.create({
       data: {
         username: userData.username,
@@ -47,9 +50,10 @@ export class UsersService extends PrismaService {
         last_name: userData.last_name,
         phone: userData.phone,
         profile_picture: userData.profile_picture || '',
-        default_location_latitude: userData.default_location_latitude || 0,
-        default_location_longitude: userData.default_location_longitude || 0,
+        default_location_latitude: userData.default_location_latitude,
+        default_location_longitude: userData.default_location_longitude,
         role: userData.role || 'user',
+        updated_at: now
       }
     });
   }
@@ -60,7 +64,10 @@ export class UsersService extends PrismaService {
   async update(id: BigInt, userData: UpdateUserDTO) {
     return this.prismaClient.users.update({
       where: { id: Number(id) },
-      data: userData
+      data: {
+        ...userData,
+        updated_at: new Date()
+      }
     });
   }
 
@@ -73,7 +80,10 @@ export class UsersService extends PrismaService {
     
     return this.prismaClient.users.update({
       where: { id: Number(id) },
-      data: { password: hashedPassword }
+      data: { 
+        password: hashedPassword,
+        updated_at: new Date()
+      }
     });
   }
 

@@ -26,6 +26,12 @@ const options: swaggerJsdoc.Options = {
         description: 'Geliştirme Sunucusu',
       }
     ],
+    tags: [
+      {
+        name: 'Haberler',
+        description: 'Haberlerle ilgili işlemler',
+      }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {

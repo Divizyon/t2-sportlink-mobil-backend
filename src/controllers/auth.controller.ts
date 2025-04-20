@@ -8,6 +8,15 @@ export const register = async (req: Request, res: Response) => {
   try {
     const userData: RegisterUserDTO = req.body;
 
+    // Gerekli alanları kontrol et
+    if (!userData.username || !userData.email || !userData.password || 
+        !userData.first_name || !userData.last_name || !userData.phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Kullanıcı adı, e-posta, şifre, ad, soyad ve telefon alanları zorunludur.'
+      });
+    }
+
     // Şifre kontrolü
     if (userData.password !== userData.confirm_password) {
       return res.status(400).json({
@@ -31,11 +40,40 @@ export const register = async (req: Request, res: Response) => {
       success: true,
       message: result.message
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Kayıt hatası:', error);
+    
+    // Prisma hata kontrolü
+    if (error.name === 'PrismaClientValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Geçersiz veri formatı. Lütfen tüm zorunlu alanları doğru formatta doldurun.',
+        error: {
+          name: error.name,
+          details: 'Veri formatı hatası'
+        }
+      });
+    }
+    
+    // Supabase Auth hatası
+    if (error.name === 'AuthApiError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Kullanıcı oluşturma hatası: ' + error.message,
+        error: {
+          name: error.name,
+          message: error.message
+        }
+      });
+    }
+    
     return res.status(500).json({
       success: false,
-      message: 'Sunucu hatası.'
+      message: 'Sunucu hatası.',
+      error: {
+        name: error.name,
+        message: error.message
+      }
     });
   }
 };

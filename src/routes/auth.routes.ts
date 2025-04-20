@@ -20,24 +20,45 @@ const router = express.Router();
  *               - email
  *               - password
  *               - confirm_password
+ *               - first_name
+ *               - last_name
+ *               - phone
  *             properties:
  *               username:
  *                 type: string
+ *                 description: Kullanıcı adı
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: E-posta adresi
  *               password:
  *                 type: string
  *                 format: password
+ *                 description: Şifre
  *               confirm_password:
  *                 type: string
  *                 format: password
- *               profile_image:
+ *                 description: Şifre tekrarı
+ *               first_name:
  *                 type: string
- *               interests:
- *                 type: array
- *                 items:
- *                   type: string
+ *                 description: Ad
+ *               last_name:
+ *                 type: string
+ *                 description: Soyad
+ *               phone:
+ *                 type: string
+ *                 description: Telefon numarası
+ *               profile_picture:
+ *                 type: string
+ *                 description: Profil resmi URL'si
+ *               default_location_latitude:
+ *                 type: number
+ *                 format: float
+ *                 description: Varsayılan konum enlem
+ *               default_location_longitude:
+ *                 type: number
+ *                 format: float
+ *                 description: Varsayılan konum boylam
  *     responses:
  *       201:
  *         description: Kullanıcı kaydedildi

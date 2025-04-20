@@ -43,8 +43,6 @@ export class UsersService extends PrismaService {
     try {
       // Şifreyi hashle
       const hashedPassword = await this.hashPassword(userData.password);
-
-      const now = new Date();
       
       // Kullanıcı verilerini hazırla ve eksik alanlar için varsayılan değerler ata
       const userDataToCreate = {
@@ -58,8 +56,6 @@ export class UsersService extends PrismaService {
         default_location_latitude: Number(userData.default_location_latitude || 0),
         default_location_longitude: Number(userData.default_location_longitude || 0),
         role: userData.role || 'user',
-        created_at: now,
-        updated_at: now
       };
       
       // Verileri doğrula
@@ -68,8 +64,7 @@ export class UsersService extends PrismaService {
       }
       
       return this.prismaClient.users.create({
-        data: userDataToCreate 
-        
+        data: userDataToCreate
       });
     } catch (error) {
       console.error('Kullanıcı oluşturma hatası:', error);

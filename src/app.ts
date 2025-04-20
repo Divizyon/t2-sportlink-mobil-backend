@@ -20,6 +20,10 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 const app = express();
 
+// BigInt'leri string'e dönüştürmek için JSON.stringify'ı geçersiz kıl
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+};
 // Güvenlik ve optimizasyon middleware'leri
 app.use(helmet()); // Güvenlik başlıkları
 app.use(cors()); // CORS desteği

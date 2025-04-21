@@ -1,23 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "es2019",
     "module": "commonjs",
-    "lib": ["ES2020"],
+    "lib": ["es2019", "esnext.asynciterable"],
+    "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "declaration": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true
+    
+    /* Uyarı Yapılandırması */
+    "noUnusedLocals": false,       /* Kullanılmayan yerel değişkenler için uyarıları kapat */
+    "noUnusedParameters": false,   /* Kullanılmayan parametreler için uyarıları kapat */
+    "noImplicitReturns": true,     /* Tüm kod yollarında dönüş olduğundan emin ol */
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts", "dist"]
+  "exclude": ["node_modules", "dist"]
 } 

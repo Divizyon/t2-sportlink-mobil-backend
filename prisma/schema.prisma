@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model user {
+  id                           String               @id @default(uuid())
+  username                     String               @unique
+  password                     String
+  email                        String               @unique
+  email_verified               Boolean              @default(false)
+  verification_token           String?              @unique
+  verification_token_expires   DateTime?
+  first_name                   String
+  last_name                    String
+  phone                        String?
+  profile_picture              String?
+  default_location_latitude    Float?
+  default_location_longitude   Float?
+  role                         String               @default("user")
+  created_at                   DateTime             @default(now())
+  updated_at                   DateTime             @updatedAt
+  admin_logs                   admin_log[]
+  announcements                announcement[]
+  created_events               event[]              @relation("UserEvents")
+  event_participants           event_participant[]
+  event_ratings                event_rating[]
+  friends_initiator            friend[]             @relation("FriendInitiator")
+  friends_acceptor             friend[]             @relation("FriendAcceptor")
+  friendship_requests_received friendship_request[] @relation("RequestReceiver")
+  friendship_requests_sent     friendship_request[] @relation("RequestSender")
+  notifications                notification[]
+  reports_received             report[]             @relation("Reported")
+  reports_made                 report[]             @relation("Reporter")
+  user_ratings_received        user_rating[]        @relation("RatedUser")
+  user_ratings_given           user_rating[]        @relation("RatingUser")
+  user_sports                  user_sport[]
+}
+
+model friendship_request {
+  id          String   @id @default(uuid())
+  sender_id   String
+  receiver_id String
+  status      String   @default("pending")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  receiver    user     @relation("RequestReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+  sender      user     @relation("RequestSender", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@unique([sender_id, receiver_id])
+}
+
+model friend {
+  id         String   @id @default(uuid())
+  user_id1   String
+  user_id2   String
+  created_at DateTime @default(now())
+  user1      user     @relation("FriendInitiator", fields: [user_id1], references: [id], onDelete: Cascade)
+  user2      user     @relation("FriendAcceptor", fields: [user_id2], references: [id], onDelete: Cascade)
+
+  @@unique([user_id1, user_id2])
+}
+
+model sport {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String
+  icon        String
+  events      event[]
+  news        news[]
+  user_sports user_sport[]
+}
+
+model user_sport {
+  user_id     String
+  sport_id    String
+  skill_level String
+  sport       sport  @relation(fields: [sport_id], references: [id], onDelete: Cascade)
+  user        user   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, sport_id])
+}
+
+model news {
+  id             String   @id @default(uuid())
+  title          String
+  content        String
+  source_url     String
+  image_url      String
+  published_date DateTime
+  sport_id       String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  sport          sport    @relation(fields: [sport_id], references: [id], onDelete: Cascade)
+}
+
+model event {
+  id                 String              @id @default(uuid())
+  creator_id         String
+  sport_id           String
+  title              String
+  description        String
+  event_date         DateTime
+  start_time         DateTime
+  end_time           DateTime
+  location_name      String
+  location_latitude  Float
+  location_longitude Float
+  max_participants   Int
+  status             String
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  creator            user                @relation("UserEvents", fields: [creator_id], references: [id], onDelete: Cascade)
+  sport              sport               @relation(fields: [sport_id], references: [id], onDelete: Cascade)
+  participants       event_participant[]
+  ratings            event_rating[]
+  notifications      notification[]
+  reports            report[]
+}
+
+model event_participant {
+  event_id  String
+  user_id   String
+  joined_at DateTime @default(now())
+  role      String
+  event     event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([event_id, user_id])
+}
+
+model event_rating {
+  id         String   @id @default(uuid())
+  event_id   String
+  user_id    String
+  rating     Int
+  review     String
+  created_at DateTime @default(now())
+  event      event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model notification {
+  id                String   @id @default(uuid())
+  user_id           String
+  notification_type String
+  content           String
+  read_status       Boolean  @default(false)
+  created_at        DateTime @default(now())
+  event_id          String
+  event             event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  user              user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model report {
+  id            String   @id @default(uuid())
+  reporter_id   String
+  reported_id   String
+  event_id      String
+  report_reason String
+  report_date   DateTime @default(now())
+  status        String
+  admin_notes   String?
+  event         event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  reported      user     @relation("Reported", fields: [reported_id], references: [id], onDelete: Cascade)
+  reporter      user     @relation("Reporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+}
+
+model user_rating {
+  id             String   @id @default(uuid())
+  rated_user_id  String
+  rating_user_id String
+  rating_value   Int
+  review_text    String
+  created_at     DateTime @default(now())
+  rated_user     user     @relation("RatedUser", fields: [rated_user_id], references: [id], onDelete: Cascade)
+  rating_user    user     @relation("RatingUser", fields: [rating_user_id], references: [id], onDelete: Cascade)
+}
+
+model admin_log {
+  id          String   @id @default(uuid())
+  admin_id    String
+  action_type String
+  description String
+  created_at  DateTime @default(now())
+  admin       user     @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+}
+
+model announcement {
+  id         String    @id @default(uuid())
+  title      String
+  slug       String    @unique
+  content    String
+  published  Boolean   @default(false)
+  start_date DateTime?
+  end_date   DateTime?
+  creator_id String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  creator    user?     @relation(fields: [creator_id], references: [id])
+}

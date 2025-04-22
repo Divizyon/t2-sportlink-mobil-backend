@@ -740,6 +740,62 @@
       ]
     },
     {
+      "name": "Duyurular",
+      "description": "Duyuru yönetimi için API istekleri",
+      "item": [
+        {
+          "name": "Tüm Duyuruları Listele",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/announcements?page=1&limit=10&includeUnpublished=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "announcements"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Sayfa numarası"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Sayfa başına kayıt sayısı"
+                },
+                {
+                  "key": "includeUnpublished",
+                  "value": "false",
+                  "description": "Yayınlanmamış duyuruları da göster (sadece admin)"
+                }
+              ]
+            },
+            "description": "Tüm duyuruları sayfalayarak listeler. Admin kullanıcılar includeUnpublished=true parametresi ile yayınlanmamış duyuruları da görebilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Duyuru Detayını Getir",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/announcements/:announcementId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "announcements", ":announcementId"],
+              "variable": [
+                {
+                  "key": "announcementId",
+                  "value": "duyuru-id-buraya",
+                  "description": "Duyuru ID"
+                }
+              ]
+            },
+            "description": "Belirtilen ID'ye sahip duyurunun detaylarını getirir. Yayınlanmamış duyurular sadece admin kullanıcılar tarafından görülebilir."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Arkadaşlık Sistemi",
       "description": "Arkadaşlık istekleri ve arkadaş yönetimi",
       "item": [

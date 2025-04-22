@@ -9,8 +9,13 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import eventRoutes from './routes/eventRoutes';
 import friendRoutes from './routes/friendRoutes';
+
 import sportRoutes from './routes/sportRoutes';
 import newsRoutes from './routes/newsRoutes';
+import announcementRoutes from './routes/announcementRoutes';
+
+
+
 
 // Çevre değişkenlerini yükle
 dotenv.config();
@@ -37,6 +42,7 @@ app.use(limiter);
 
 // Ana rota
 app.get('/', (_: Request, res: Response) => {
+  
   res.json({
     success: true,
     message: 'SportLink API çalışıyor!',
@@ -49,8 +55,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/friends', friendRoutes);
+
 app.use('/api/sports', sportRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {
@@ -62,6 +70,7 @@ app.use((_: Request, res: Response) => {
 });
 
 // Hata işleyici
+//a 
 app.use((err: any, _: Request, res: Response, __: NextFunction) => {
   console.error('Sunucu hatası:', err);
   

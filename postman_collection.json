@@ -1,0 +1,983 @@
+{
+  "info": {
+    "name": "SportVision API",
+    "description": "SportVision mobil uygulaması için API koleksiyonu",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Kimlik Doğrulama",
+      "description": "Kullanıcı kayıt ve kimlik doğrulama işlemleri",
+      "item": [
+        {
+          "name": "Kayıt Ol",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_user\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"phone\": \"+901234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Yeni kullanıcı kaydı oluşturur"
+          },
+          "response": []
+        },
+        {
+          "name": "Giriş Yap",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Kullanıcı girişi yapar ve JWT token döndürür"
+          },
+          "response": []
+        },
+        {
+          "name": "E-posta Doğrula",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-email?token={{verification_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verification_token}}"
+                }
+              ]
+            },
+            "description": "E-posta doğrulama bağlantısını işler"
+          },
+          "response": []
+        },
+        {
+          "name": "Çıkış Yap",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Kullanıcı oturumunu kapatır"
+          },
+          "response": []
+        },
+        {
+          "name": "Şifre Sıfırlama",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "Şifre sıfırlama bağlantısı gönderir"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Kullanıcı Profili",
+      "description": "Kullanıcı profil yönetimi",
+      "item": [
+        {
+          "name": "Profil Bilgilerini Al",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Giriş yapmış kullanıcının profil bilgilerini getirir"
+          },
+          "response": []
+        },
+        {
+          "name": "Profil Bilgilerini Güncelle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\",\n  \"phone\": \"+901234567890\",\n  \"profile_picture\": \"http://example.com/profile.jpg\",\n  \"default_location_latitude\": 41.0082,\n  \"default_location_longitude\": 28.9784\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Kullanıcı profil bilgilerini günceller"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Spor Dalları",
+      "description": "Spor dalları yönetimi",
+      "item": [
+        {
+          "name": "Tüm Spor Dallarını Listele",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/sports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sports"]
+            },
+            "description": "Tüm spor dallarını listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Spor Dalı Detayı",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/sports/:sportId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sports", ":sportId"],
+              "variable": [
+                {
+                  "key": "sportId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              ]
+            },
+            "description": "Belirli bir spor dalının detaylarını getirir"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Etkinlikler",
+      "description": "Etkinlik yönetimi",
+      "item": [
+        {
+          "name": "Etkinlikleri Listele",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events?page=1&limit=10&sportId=550e8400-e29b-41d4-a716-446655440000&status=active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sportId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000",
+                  "description": "Spor dalına göre filtreleme"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Etkinlik durumuna göre filtreleme (active, canceled, completed, draft, all)"
+                }
+              ]
+            },
+            "description": "Tüm etkinlikleri sayfalayarak listeler, spor dalı veya durum filtreleme seçenekleri vardır"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Oluştur",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sport_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Futbol Turnuvası\",\n  \"description\": \"Arkadaşlarla futbol maçı\",\n  \"event_date\": \"2023-06-15\",\n  \"start_time\": \"2023-06-15T15:00:00Z\",\n  \"end_time\": \"2023-06-15T17:00:00Z\",\n  \"location_name\": \"Örnek Spor Tesisi\",\n  \"location_latitude\": 41.0082,\n  \"location_longitude\": 28.9784,\n  \"max_participants\": 22,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events"]
+            },
+            "description": "Yeni etkinlik oluşturur"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Detayı",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Belirli bir etkinliğin detaylarını getirir"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Güncelle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Güncellenmiş Futbol Turnuvası\",\n  \"description\": \"Güncellenmiş açıklama\",\n  \"event_date\": \"2023-06-16\",\n  \"start_time\": \"2023-06-16T16:00:00Z\",\n  \"end_time\": \"2023-06-16T18:00:00Z\",\n  \"location_name\": \"Güncellenmiş Tesis\",\n  \"location_latitude\": 41.0082,\n  \"location_longitude\": 28.9784,\n  \"max_participants\": 24,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Etkinlik bilgilerini günceller"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Sil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Etkinliği siler"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinliğe Katıl",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/join",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "join"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Kullanıcıyı etkinliğe katılımcı olarak ekler"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlikten Ayrıl",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/leave",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "leave"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Kullanıcıyı etkinlik katılımcılarından çıkarır"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Değerlendir",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Harika bir etkinlikti!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/rate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "rate"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Etkinlik için değerlendirme ve yorum ekler"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Değerlendirmeleri",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/ratings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "ratings"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Etkinlik için yapılan değerlendirmeleri ve ortalama puanı getirir"
+          },
+          "response": []
+        },
+        {
+          "name": "Katıldığım Etkinlikler",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/my-events?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "my-events"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Giriş yapmış kullanıcının katıldığı etkinlikleri listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Oluşturduğum Etkinlikler",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/created-events?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "created-events"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Giriş yapmış kullanıcının oluşturduğu etkinlikleri listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Yakındaki Etkinlikler",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/nearby?latitude=41.0082&longitude=28.9784&radius=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "41.0082"
+                },
+                {
+                  "key": "longitude",
+                  "value": "28.9784"
+                },
+                {
+                  "key": "radius",
+                  "value": "10",
+                  "description": "Kilometre cinsinden yarıçap"
+                }
+              ]
+            },
+            "description": "Belirli bir konuma yakın etkinlikleri listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Ara",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/search?keyword=futbol&sportId=550e8400-e29b-41d4-a716-446655440000&status=active&startDate=2023-06-01&endDate=2023-06-30&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "futbol",
+                  "description": "Arama anahtar kelimesi"
+                },
+                {
+                  "key": "sportId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000",
+                  "description": "Spor dalına göre filtreleme"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Etkinlik durumuna göre filtreleme"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2023-06-01",
+                  "description": "Başlangıç tarihi"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2023-06-30",
+                  "description": "Bitiş tarihi"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Etkinlikleri çeşitli kriterlere göre arar"
+          },
+          "response": []
+        },
+        {
+          "name": "Önerilen Etkinlikler",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/recommended",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "recommended"]
+            },
+            "description": "Kullanıcının spor tercihlerine göre önerilen etkinlikleri listeler"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Haberler",
+      "description": "Spor haberleri yönetimi",
+      "item": [
+        {
+          "name": "Haberleri Listele",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/news?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "news"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Spor haberlerini sayfalayarak listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Haber Detayı",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/news/:newsId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "news", ":newsId"],
+              "variable": [
+                {
+                  "key": "newsId",
+                  "value": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                }
+              ]
+            },
+            "description": "Belirli bir haberin detaylarını getirir"
+          },
+          "response": []
+        },
+        {
+          "name": "Spora Göre Haberler",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/news/sport/:sportId?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "news", "sport", ":sportId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "sportId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              ]
+            },
+            "description": "Belirli bir spor dalına ait haberleri listeler"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Arkadaşlık Sistemi",
+      "description": "Arkadaşlık istekleri ve arkadaş yönetimi",
+      "item": [
+        {
+          "name": "Arkadaşlık İsteği Gönder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/friends/request/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "request", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              ]
+            },
+            "description": "Belirtilen kullanıcıya arkadaşlık isteği gönderir"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşlık İsteğini Kabul Et",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/api/friends/accept/:requestId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "accept", ":requestId"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Gelen arkadaşlık isteğini kabul eder"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşlık İsteğini Reddet",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/api/friends/reject/:requestId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "reject", ":requestId"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Gelen arkadaşlık isteğini reddeder"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşlıktan Çıkar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/friends/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              ]
+            },
+            "description": "Arkadaşlık ilişkisini sonlandırır"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşlık İsteklerini Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/friends/requests?page=1&limit=10&status=pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "requests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "İstek durumu (pending, accepted, rejected)"
+                }
+              ]
+            },
+            "description": "Kullanıcıya gelen arkadaşlık isteklerini listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşları Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/friends?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Kullanıcının tüm arkadaşlarını listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Arkadaşlık Durumunu Kontrol Et",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/friends/status/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "status", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              ]
+            },
+            "description": "İki kullanıcı arasındaki arkadaşlık durumunu kontrol eder"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "verification_token",
+      "value": "your-verification-token-here",
+      "type": "string"
+    }
+  ]
+} 

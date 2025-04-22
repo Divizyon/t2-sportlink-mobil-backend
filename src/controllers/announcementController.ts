@@ -19,7 +19,7 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
     const params = {
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { created_at: 'desc' as Prisma.SortOrder },
+      orderBy: { created_at: 'desc' as const },
       includeUnpublished: isAdmin && includeUnpublished
     };
 

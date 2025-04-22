@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import eventRoutes from './routes/eventRoutes';
 import friendRoutes from './routes/friendRoutes';
+import announcementRoutes from './routes/announcementRoutes';
 
 // Çevre değişkenlerini yükle
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

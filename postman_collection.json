@@ -281,14 +281,47 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sport_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Futbol Turnuvası\",\n  \"description\": \"Arkadaşlarla futbol maçı\",\n  \"event_date\": \"2023-06-15\",\n  \"start_time\": \"2023-06-15T15:00:00Z\",\n  \"end_time\": \"2023-06-15T17:00:00Z\",\n  \"location_name\": \"Örnek Spor Tesisi\",\n  \"location_latitude\": 41.0082,\n  \"location_longitude\": 28.9784,\n  \"max_participants\": 22,\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"sport_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Futbol Turnuvası\",\n  \"description\": \"Arkadaşlarla futbol maçı\",\n  \"event_date\": \"2023-06-15\",\n  \"start_time\": \"2023-06-15T15:00:00Z\",\n  \"end_time\": \"2023-06-15T17:00:00Z\",\n  \"location_name\": \"Örnek Spor Tesisi\",\n  \"location_latitude\": 41.0082,\n  \"location_longitude\": 28.9784,\n  \"max_participants\": 22,\n  \"status\": \"active\",\n  \"is_private\": false,\n  \"invitation_code\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/events",
               "host": ["{{base_url}}"],
               "path": ["api", "events"]
             },
-            "description": "Yeni etkinlik oluşturur"
+            "description": "Yeni etkinlik oluşturur. 'is_private' alanı true olarak ayarlandığında özel bir etkinlik oluşturulur, bu durumda sistem otomatik olarak bir davet kodu oluşturur veya kullanıcının kendi davet kodunu belirlemesine izin verir."
+          },
+          "response": []
+        },
+        {
+          "name": "Özel Etkinlik Oluştur",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sport_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Özel Futbol Turnuvası\",\n  \"description\": \"Sadece davetli kişilerin katılabileceği özel futbol maçı\",\n  \"event_date\": \"2023-06-15\",\n  \"start_time\": \"2023-06-15T15:00:00Z\",\n  \"end_time\": \"2023-06-15T17:00:00Z\",\n  \"location_name\": \"Özel Spor Tesisi\",\n  \"location_latitude\": 41.0082,\n  \"location_longitude\": 28.9784,\n  \"max_participants\": 10,\n  \"status\": \"active\",\n  \"is_private\": true,\n  \"invitation_code\": \"ABC123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events"]
+            },
+            "description": "Özel bir etkinlik oluşturur. Özel etkinliklere sadece davet koduyla katılım yapılabilir. invitation_code alanı boş bırakılırsa sistem otomatik bir kod üretir."
           },
           "response": []
         },
@@ -393,6 +426,16 @@
               ]
             },
             "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invitation_code\": null\n}"
+            },
             "url": {
               "raw": "{{base_url}}/api/events/:eventId/join",
               "host": ["{{base_url}}"],
@@ -404,7 +447,75 @@
                 }
               ]
             },
-            "description": "Kullanıcıyı etkinliğe katılımcı olarak ekler"
+            "description": "Kullanıcıyı etkinliğe katılımcı olarak ekler. Eğer etkinlik özel ise davet kodu (invitation_code) gereklidir."
+          },
+          "response": []
+        },
+        {
+          "name": "Özel Etkinliğe Davet Koduyla Katıl",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invitation_code\": \"ABC123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/join",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "join"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Özel bir etkinliğe davet kodu ile katılır. Bu kod, etkinlik oluşturulduğunda belirlenen veya sistem tarafından otomatik olarak oluşturulan koddur."
+          },
+          "response": []
+        },
+        {
+          "name": "Etkinlik Davet Kodunu Getir",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/:eventId/invitation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", ":eventId", "invitation"],
+              "variable": [
+                {
+                  "key": "eventId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                }
+              ]
+            },
+            "description": "Özel bir etkinliğin davet kodunu getirir. Sadece etkinliği oluşturan kullanıcı bu bilgiye erişebilir."
           },
           "response": []
         },

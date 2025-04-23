@@ -159,10 +159,28 @@ export class Friend {
       throw new Error('Arkadaşlık ilişkisi bulunamadı');
     }
 
-    // Arkadaşlık ilişkisini sil
-    return prisma.friend.delete({
-      where: { id: friendship.id }
-    });
+    // Transaction kullanarak hem arkadaşlığı hem de istekleri sil
+    return prisma.$transaction([
+      // Arkadaşlık ilişkisini sil
+      prisma.friend.delete({
+        where: { id: friendship.id }
+      }),
+      // Bu iki kullanıcı arasındaki tüm arkadaşlık isteklerini sil
+      prisma.friendship_request.deleteMany({
+        where: {
+          OR: [
+            {
+              sender_id: userId,
+              receiver_id: friendId
+            },
+            {
+              sender_id: friendId,
+              receiver_id: userId
+            }
+          ]
+        }
+      })
+    ]);
   }
 
   /**
@@ -274,5 +292,36 @@ export class Friend {
     });
 
     return request;
+  }
+
+  /**
+   * İki kullanıcı arasında herhangi bir durumda istek olup olmadığını kontrol eder
+   */
+  static async checkExistingRequest(userId1: string, userId2: string) {
+    const request = await prisma.friendship_request.findFirst({
+      where: {
+        OR: [
+          {
+            sender_id: userId1,
+            receiver_id: userId2
+          },
+          {
+            sender_id: userId2,
+            receiver_id: userId1
+          }
+        ]
+      }
+    });
+
+    return request;
+  }
+
+  /**
+   * Belirli bir arkadaşlık isteğini siler
+   */
+  static async deleteRequest(requestId: string) {
+    return prisma.friendship_request.delete({
+      where: { id: requestId }
+    });
   }
 } 

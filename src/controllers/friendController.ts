@@ -25,6 +25,18 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
     }
 
     try {
+      // Aktif veya geçmiş bir istek var mı kontrol et (durumdan bağımsız olarak)
+      const existingRequest = await Friend.checkExistingRequest(senderId, userId);
+
+      if (existingRequest) {
+        // Eğer istek reddedilmiş veya kabul edilmiş ise, silelim ve yeni istek oluşturalım
+        if (existingRequest.status === 'rejected' || existingRequest.status === 'accepted') {
+          await Friend.deleteRequest(existingRequest.id);
+        } else {
+          throw new Error('Bu kullanıcı için bekleyen bir arkadaşlık isteği zaten mevcut');
+        }
+      }
+
       const request = await Friend.sendRequest(senderId, userId);
       
       return res.status(201).json({

@@ -113,6 +113,8 @@ model event {
   location_longitude Float
   max_participants   Int
   status             String
+  is_private         Boolean             @default(false)
+  invitation_code    String?
   created_at         DateTime            @default(now())
   updated_at         DateTime            @updatedAt
   creator            user                @relation("UserEvents", fields: [creator_id], references: [id], onDelete: Cascade)

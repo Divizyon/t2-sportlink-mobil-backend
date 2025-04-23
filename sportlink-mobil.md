@@ -26,15 +26,22 @@ Ayrıca, Konya'daki spor haberleri ve etkinlik duyuruları sistemde otomatik ola
 
 ### 2.2. Etkinlik Yönetimi
 - **Etkinlik Oluşturma ve Katılım**
-  - `POST /api/events`: Yeni etkinlik oluşturma
+  - `POST /api/events`: Yeni etkinlik oluşturma (özel veya genel seçeneği ile)
+    - Parametreler: `is_private` (boolean): Etkinliğin özel olup olmadığını belirtir
+    - Özel etkinlik oluşturulduğunda otomatik olarak benzersiz bir davet kodu oluşturulur
+    - Özel etkinliklere sadece davet kodu ile katılım yapılabilir
   - `GET /api/events`: Etkinlikleri listeleme (filtreleme özellikleriyle)
   - `GET /api/events/:eventId`: Etkinlik detaylarını görüntüleme
   - `PUT /api/events/:eventId`: Etkinlik bilgilerini güncelleme (sadece oluşturan)
   - `DELETE /api/events/:eventId`: Etkinliği silme (sadece oluşturan)
   - `POST /api/events/:eventId/join`: Etkinliğe katılma
+    - Parametreler: `invitation_code` (string, opsiyonel): Özel etkinliklere katılmak için gerekli kod
   - `POST /api/events/:eventId/leave`: Etkinlikten ayrılma
   - `GET /api/events/my`: Kullanıcının katıldığı etkinlikleri listeleme
   - `GET /api/events/created`: Kullanıcının oluşturduğu etkinlikleri listeleme
+  - `POST /api/events/:eventId/comments`: Etkinliğe yorum ekleme
+  - `GET /api/events/:eventId/comments`: Etkinlik yorumlarını görüntüleme
+  - `GET /api/events/:eventId/invitation`: Etkinlik davet kodunu görüntüleme (sadece etkinlik sahibi)
 
 - **Etkinlik Filtreleme ve Arama**
   - `GET /api/events/nearby`: Yakındaki etkinlikleri bulma (konum bazlı)
@@ -52,14 +59,20 @@ Ayrıca, Konya'daki spor haberleri ve etkinlik duyuruları sistemde otomatik ola
   - `PUT /api/friends/reject/:requestId`: Arkadaşlık isteğini reddetme
   - `GET /api/friends`: Arkadaş listesini görüntüleme
   - `GET /api/friends/requests`: Gelen arkadaşlık isteklerini görüntüleme
+  - `GET /api/users/recommended`: Spor ilgilerine göre önerilen spor arkadaşları
+  - `GET /api/users/filter`: Filtreleme seçenekleriyle (spor türü, yaş, seviye, müsaitlik) kullanıcı arama
 
-
+- **Mesajlaşma**
+  - `POST /api/messages/:userId`: Kullanıcıya mesaj gönderme
+  - `GET /api/messages`: Mesaj listesini görüntüleme
+  - `GET /api/messages/:userId`: Belirli bir kullanıcıyla olan mesajlaşma geçmişini görüntüleme
 
 ### 2.4. Bildirim Sistemi
 - **Bildirim Yönetimi**
   - `GET /api/notifications`: Bildirimleri listeleme
   - `PUT /api/notifications/:notificationId/read`: Bildirimi okundu olarak işaretleme
-  - `PUT /api/notifications/settings`: Bildirim ayarlarını güncelleme
+  - `PUT /api/notifications/settings`: Bildirim ayarlarını güncelleme (spor haberleri, yaklaşan etkinlikler, partner eşleşmeleri vb.)
+  - `GET /api/notifications/unread`: Okunmamış bildirimleri listeleme
 
 ### 2.5. Spor Haberleri ve Duyurular
 - **Haber ve Duyuru Yönetimi**
@@ -73,3 +86,8 @@ Ayrıca, Konya'daki spor haberleri ve etkinlik duyuruları sistemde otomatik ola
   - `GET /api/locations/sports-facilities`: Yakındaki spor tesislerini listeleme
   - `GET /api/locations/events`: Harita üzerinde etkinlikleri görüntüleme
   - `POST /api/locations/current`: Kullanıcının mevcut konumunu güncelleme
+  - `GET /api/locations/nearest`: "Bana En Yakın" butonu için en yakın etkinlik ve tesisleri listeleme
+  - `GET /api/locations/routes/cycling`: Bisiklet rotalarını listeleme
+  - `GET /api/locations/routes/running`: Koşu yollarını listeleme
+  - `GET /api/locations/gyms`: Spor salonlarını listeleme
+  - `GET /api/locations/sports-areas`: Konum bazlı spor yapılabilecek alanları harita üzerinde gösterme

@@ -13,7 +13,8 @@ import {
   searchEvents,
   getRecommendedEvents,
   rateEvent,
-  getEventRatings
+  getEventRatings,
+  getEventInvitationCode
 } from '../controllers/eventController';
 import { authenticate } from '../middlewares/authMiddleware';
 
@@ -38,13 +39,16 @@ router.delete('/:eventId', authenticate, deleteEvent);
 router.post('/:eventId/join', authenticate, joinEvent);
 
 // Etkinlikten ayrıl
-router.delete('/:eventId/leave', authenticate, leaveEvent);
+router.post('/:eventId/leave', authenticate, leaveEvent);
 
 // Kullanıcının katıldığı etkinlikleri getir
 router.get('/my-events', authenticate, getMyEvents);
 
 // Kullanıcının oluşturduğu etkinlikleri getir
 router.get('/created-events', authenticate, getCreatedEvents);
+
+// Etkinliğin davet kodunu getir (sadece oluşturan)
+router.get('/:eventId/invitation', authenticate, getEventInvitationCode);
 
 // FILTRELEME VE ARAMA ENDPOINTLERI
 

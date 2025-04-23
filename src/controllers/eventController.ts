@@ -48,6 +48,8 @@ const createEventSchema = z.object({
   location_longitude: z.number().min(-180).max(180),
   max_participants: z.number().int().positive(),
   status: z.enum(['active', 'canceled', 'completed', 'draft']),
+  is_private: z.boolean().default(false),
+  invitation_code: z.string().min(4).optional().nullable(),
 });
 
 // Etkinlik güncelleme için schema
@@ -177,6 +179,12 @@ export const createEvent = async (req: Request, res: Response) => {
     
     // Kullanıcı ID'sini ekle
     const userId = req.user.id;
+    
+    // Eğer etkinlik özel ise ve davet kodu yoksa otomatik oluştur
+    let { invitation_code } = data;
+    if (data.is_private && !invitation_code) {
+      invitation_code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
 
     const event = await EventWithExtensions.create({
       title: data.title,
@@ -189,6 +197,8 @@ export const createEvent = async (req: Request, res: Response) => {
       location_longitude: data.location_longitude,
       max_participants: data.max_participants,
       status: data.status,
+      is_private: data.is_private,
+      invitation_code,
       creator: { connect: { id: userId } },
       sport: { connect: { id: data.sport_id } }
     });
@@ -196,7 +206,10 @@ export const createEvent = async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       message: 'Etkinlik başarıyla oluşturuldu',
-      data: { event }
+      data: { 
+        event,
+        invitation_code: data.is_private ? invitation_code : null
+      }
     });
   } catch (error: any) {
     console.error('Etkinlik oluşturma hatası:', error);
@@ -315,6 +328,7 @@ export const joinEvent = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
     const userId = req.user.id;
+    const { invitation_code } = req.body;
 
     // Etkinliğin var olup olmadığını kontrol et
     const event = await EventWithExtensions.findUnique({
@@ -326,6 +340,23 @@ export const joinEvent = async (req: Request, res: Response) => {
         success: false,
         message: 'Etkinlik bulunamadı'
       });
+    }
+    
+    // Özel etkinlik ise davet kodunu kontrol et
+    if (event.is_private) {
+      if (!invitation_code) {
+        return res.status(400).json({
+          success: false,
+          message: 'Bu özel bir etkinliktir, katılmak için davet kodu gereklidir'
+        });
+      }
+      
+      if (invitation_code !== event.invitation_code) {
+        return res.status(403).json({
+          success: false,
+          message: 'Geçersiz davet kodu'
+        });
+      }
     }
 
     // Etkinlik katılımcı sayısını kontrol et
@@ -1069,4 +1100,54 @@ EventWithExtensions.getAverageRating = async (eventId: string) => {
     average: result._avg.rating || 0,
     count: result._count.rating || 0,
   };
+};
+
+// Etkinlik davet kodunu getir (sadece etkinlik sahibi)
+export const getEventInvitationCode = async (req: Request, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.user.id;
+
+    // Etkinliğin var olup olmadığını kontrol et
+    const event = await EventWithExtensions.findUnique({
+      id: eventId
+    });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Etkinlik bulunamadı'
+      });
+    }
+
+    // Etkinliğin sahibi olup olmadığını kontrol et
+    if (event.creator_id !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bu etkinliğin davet kodunu görme yetkiniz yok'
+      });
+    }
+
+    // Etkinlik özel değilse hata döndür
+    if (!event.is_private) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bu etkinlik özel değil, davet kodu bulunmamaktadır'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        invitation_code: event.invitation_code
+      }
+    });
+  } catch (error: any) {
+    console.error('Etkinlik davet kodu getirme hatası:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Etkinlik davet kodu getirilirken bir hata oluştu',
+      error: error.message
+    });
+  }
 }; 

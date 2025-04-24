@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
 
 // Prisma istemcisinin örneğini oluştur

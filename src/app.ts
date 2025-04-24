@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -9,11 +10,11 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import eventRoutes from './routes/eventRoutes';
 import friendRoutes from './routes/friendRoutes';
-
+import messageRoutes from './routes/messageRoutes';
 import sportRoutes from './routes/sportRoutes';
 import newsRoutes from './routes/newsRoutes';
 import announcementRoutes from './routes/announcementRoutes';
-
+import { setupRealtimeTables } from './config/supabase';
 
 
 
@@ -55,7 +56,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/friends', friendRoutes);
-
+app.use('/api/messages', messageRoutes);
 app.use('/api/sports', sportRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/announcements', announcementRoutes);
@@ -83,6 +84,11 @@ app.use((err: any, _: Request, res: Response, __: NextFunction) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Supabase realtime özelliklerini başlat
+setupRealtimeTables()
+  .then(() => console.log('Supabase realtime yapılandırması başarıyla tamamlandı'))
+  .catch((err) => console.error('Supabase realtime yapılandırması başarısız:', err));
 
 app.listen(PORT, () => {
   console.log(`Server http://localhost:${PORT} adresinde çalışıyor`);

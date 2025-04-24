@@ -1127,6 +1127,218 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Mesajlaşma Sistemi",
+      "description": "Supabase realtime tabanlı mesajlaşma sistemi",
+      "item": [
+        {
+          "name": "Konuşma Oluştur",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"550e8400-e29b-41d4-a716-446655440000\"],\n  \"name\": \"Örnek Konuşma\",\n  \"isGroup\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversations"]
+            },
+            "description": "Yeni bir konuşma oluşturur. Birebir konuşma için isGroup=false ve tek bir userId, grup konuşması için isGroup=true ve birden fazla userId gönderilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Konuşmaları Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversations?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversations"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Sayfa başına konuşma sayısı"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Atlama değeri (sayfalama için)"
+                }
+              ]
+            },
+            "description": "Kullanıcının tüm konuşmalarını getirir."
+          },
+          "response": []
+        },
+        {
+          "name": "Konuşma Mesajlarını Getir",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversations/:conversationId/messages?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversations", ":conversationId", "messages"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Sayfa başına mesaj sayısı"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Atlama değeri (sayfalama için)"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                  "description": "Konuşma ID"
+                }
+              ]
+            },
+            "description": "Belirli bir konuşmadaki mesajları getirir."
+          },
+          "response": []
+        },
+        {
+          "name": "Mesaj Gönder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n  \"content\": \"Merhaba, nasılsın?\",\n  \"mediaUrl\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/messages/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "messages"]
+            },
+            "description": "Belirli bir konuşmaya yeni mesaj gönderir. mediaUrl isteğe bağlıdır ve resim/video gibi medya içerikleri için kullanılabilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Mesajları Okundu Olarak İşaretle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageIds\": [\"f47ac10b-58cc-4372-a567-0e02b2c3d479\", \"550e8400-e29b-41d4-a716-446655440000\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/messages/messages/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "messages", "read"]
+            },
+            "description": "Belirtilen mesajları okundu olarak işaretler."
+          },
+          "response": []
+        },
+        {
+          "name": "Konuşmadan Ayrıl",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversations/:conversationId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversations", ":conversationId"],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                  "description": "Konuşma ID"
+                }
+              ]
+            },
+            "description": "Kullanıcıyı konuşmadan çıkarır. Birebir konuşmalarda konuşma tamamen silinir, grup konuşmalarında kullanıcı ayrılır ama konuşma devam eder."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [],
@@ -1147,4 +1359,4 @@
       "type": "string"
     }
   ]
-} 
+}

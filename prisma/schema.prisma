@@ -38,6 +38,7 @@ model user {
   sent_messages                message[]
   read_messages                message_read[]
   notifications                notification[]
+  device_tokens                DeviceToken[]              // Eklenen ilişki
   reports_received             report[]                   @relation("Reported")
   reports_made                 report[]                   @relation("Reporter")
   user_ratings_received        user_rating[]              @relation("RatedUser")
@@ -151,15 +152,23 @@ model event_rating {
 }
 
 model notification {
-  id                String   @id @default(uuid())
-  user_id           String
-  notification_type String
-  content           String
-  read_status       Boolean  @default(false)
-  created_at        DateTime @default(now())
-  event_id          String
-  event             event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  user              user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  user_id      String
+  title        String    // Eski: notification_type
+  body         String    // Eski: content
+  data         Json?     // Yeni eklenen alan
+  type         String    // notification_type karşılığı
+  is_read      Boolean   @default(false) // Eski: read_status
+  redirect_url String?   // Yeni eklenen alan
+  created_at   DateTime  @default(now())
+  expires_at   DateTime? // Yeni eklenen alan
+  event_id     String?   // Artık opsiyonel
+  event        event?    @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  user         user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([type])
+  @@index([event_id])
 }
 
 model report {
@@ -254,4 +263,37 @@ model message_read {
   user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([message_id, user_id])
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  platform   String
+  user_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model realtime_messages {
+  id              String    @id @db.Uuid
+  conversation_id String    @db.Uuid
+  sender_id       String    @db.Uuid
+  content         String
+  media_url       String?
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model realtime_notifications {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String
+  notification_id String
+  title           String
+  body            String
+  data            Json?
+  type            String
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
 }

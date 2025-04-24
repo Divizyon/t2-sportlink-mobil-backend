@@ -1339,6 +1339,258 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Bildirimler",
+      "description": "Bildirim sistemi yönetimi",
+      "item": [
+        {
+          "name": "Bildirimleri Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/notifications?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Sayfa numarası"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Sayfa başına bildirim sayısı"
+                }
+              ]
+            },
+            "description": "Kullanıcının bildirimlerini sayfalayarak listeler"
+          },
+          "response": []
+        },
+        {
+          "name": "Okunmamış Bildirim Sayısı",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/notifications/unread/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "unread", "count"]
+            },
+            "description": "Kullanıcının okunmamış bildirimlerinin sayısını getirir"
+          },
+          "response": []
+        },
+        {
+          "name": "Bildirimi Okundu Olarak İşaretle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/notifications/:notificationId/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", ":notificationId", "read"],
+              "variable": [
+                {
+                  "key": "notificationId",
+                  "value": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                  "description": "Bildirim ID"
+                }
+              ]
+            },
+            "description": "Belirli bir bildirimi okundu olarak işaretler"
+          },
+          "response": []
+        },
+        {
+          "name": "Tüm Bildirimleri Okundu Olarak İşaretle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            },
+            "description": "Kullanıcının tüm bildirimlerini okundu olarak işaretler"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Bildirimi Gönder",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Bildirimi\",\n  \"body\": \"Bu bir test bildirimidir\",\n  \"type\": \"system\",\n  \"data\": {\n    \"key1\": \"value1\",\n    \"key2\": \"value2\"\n  },\n  \"redirectUrl\": \"app://home\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications/test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "test"]
+            },
+            "description": "Test amaçlı bildirim gönderir (sadece kendine). Admin ise 'userId' parametresi eklenerek başka kullanıcılara da gönderilebilir."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cihaz Yönetimi",
+      "description": "Push notification için cihaz token yönetimi",
+      "item": [
+        {
+          "name": "Cihaz Token Kaydet",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ExponentPushToken[XXXXXXXXXXXXXXXXXXXXXXXX]\",\n  \"platform\": \"expo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/devices/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "register"]
+            },
+            "description": "Cihaz push notification token'ını kaydeder. Platform 'ios', 'android' veya 'expo' olabilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Cihaz Token Sil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ExponentPushToken[XXXXXXXXXXXXXXXXXXXXXXXX]\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/devices/unregister",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "unregister"]
+            },
+            "description": "Kaydedilmiş bir cihaz push notification token'ını siler."
+          },
+          "response": []
+        },
+        {
+          "name": "Kullanıcı Cihaz Tokenları (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/devices/user/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "user", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000",
+                  "description": "Kullanıcı ID"
+                }
+              ]
+            },
+            "description": "Belirli bir kullanıcının kayıtlı cihaz tokenlarını listeler. Sadece admin kullanıcılar erişebilir."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [],

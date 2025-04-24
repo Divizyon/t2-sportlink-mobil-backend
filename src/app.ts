@@ -14,6 +14,8 @@ import messageRoutes from './routes/messageRoutes';
 import sportRoutes from './routes/sportRoutes';
 import newsRoutes from './routes/newsRoutes';
 import announcementRoutes from './routes/announcementRoutes';
+import notificationRoutes from './routes/notificationRoutes';
+import deviceRoutes from './routes/deviceRoutes';
 import { setupRealtimeTables } from './config/supabase';
 
 
@@ -60,6 +62,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/sports', sportRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/devices', deviceRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

@@ -1014,6 +1014,36 @@
             "description": "İki kullanıcı arasındaki arkadaşlık durumunu kontrol eder"
           },
           "response": []
+        },
+        {
+          "name": "Arkadaş Önerileri",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/friends/suggestions?limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends", "suggestions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Önerilecek arkadaş sayısı (1-20 arası)"
+                }
+              ]
+            },
+            "description": "Kullanıcı için rastgele arkadaş önerileri getirir"
+          },
+          "response": []
         }
       ]
     },

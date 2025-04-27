@@ -305,4 +305,34 @@ export const checkFriendshipStatus = async (req: Request, res: Response) => {
       error: error.message
     });
   }
+};
+
+/**
+ * Kullanıcı için rastgele arkadaş önerileri getirir
+ */
+export const getSuggestedFriends = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit as string) || 5;
+    
+    // Limit değeri için makul bir sınır koy (1-20 arası)
+    const safeLimit = Math.max(1, Math.min(20, limit));
+    
+    // Arkadaş önerilerini getir
+    const suggestedFriends = await Friend.getSuggestedFriends(userId, safeLimit);
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        suggestedFriends
+      }
+    });
+  } catch (error: any) {
+    console.error('Arkadaş önerileri getirme hatası:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Arkadaş önerileri getirilirken bir hata oluştu',
+      error: error.message
+    });
+  }
 }; 

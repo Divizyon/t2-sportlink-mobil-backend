@@ -52,9 +52,86 @@ export const userService = {
         };
       }
 
+      // Oluşturulan etkinlik sayısını al
+      const createdEventsCount = await prisma.event.count({
+        where: { creator_id: userId }
+      });
+
+      // Katılınan etkinlik sayısını al
+      const participatedEventsCount = await prisma.event_participant.count({
+        where: { user_id: userId }
+      });
+
+      // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
+      const userRatings = await prisma.user_rating.findMany({
+        where: { rated_user_id: userId },
+        select: { rating_value: true }
+      });
+
+      // Ortalama puanı hesapla
+      let averageRating = 0;
+      if (userRatings.length > 0) {
+        const totalRating = userRatings.reduce((sum, rating) => sum + rating.rating_value, 0);
+        averageRating = parseFloat((totalRating / userRatings.length).toFixed(1));
+      }
+
+      // Arkadaş sayısını al
+      const friendsCount = await prisma.friend.count({
+        where: {
+          OR: [
+            { user_id1: userId },
+            { user_id2: userId }
+          ]
+        }
+      });
+
+      // Arkadaş listesini al
+      const friendships = await prisma.friend.findMany({
+        where: {
+          OR: [
+            { user_id1: userId },
+            { user_id2: userId }
+          ]
+        },
+        include: {
+          user1: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          },
+          user2: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          }
+        }
+      });
+
+      // Arkadaş listesini düzenle (userId'ye göre diğer kullanıcıyı göster)
+      const friends = friendships.map(friendship => {
+        return friendship.user_id1 === userId ? friendship.user2 : friendship.user1;
+      });
+
       return {
         success: true,
-        data: user
+        data: {
+          ...user,
+          stats: {
+            createdEventsCount,
+            participatedEventsCount,
+            averageRating,
+            friendsCount
+          },
+          friends // Arkadaş listesini ekle
+        }
       };
     } catch (error: any) {
       return {
@@ -256,6 +333,8 @@ export const userService = {
           first_name: true,
           last_name: true,
           profile_picture: true,
+          role: true,
+          created_at: true,
           user_sports: {
             include: {
               sport: true
@@ -272,15 +351,92 @@ export const userService = {
         };
       }
 
+      // Oluşturulan etkinlik sayısını al
+      const createdEventsCount = await prisma.event.count({
+        where: { creator_id: userId }
+      });
+
+      // Katılınan etkinlik sayısını al
+      const participatedEventsCount = await prisma.event_participant.count({
+        where: { user_id: userId }
+      });
+
+      // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
+      const userRatings = await prisma.user_rating.findMany({
+        where: { rated_user_id: userId },
+        select: { rating_value: true }
+      });
+
+      // Ortalama puanı hesapla
+      let averageRating = 0;
+      if (userRatings.length > 0) {
+        const totalRating = userRatings.reduce((sum, rating) => sum + rating.rating_value, 0);
+        averageRating = parseFloat((totalRating / userRatings.length).toFixed(1));
+      }
+
+      // Arkadaş sayısını al
+      const friendsCount = await prisma.friend.count({
+        where: {
+          OR: [
+            { user_id1: userId },
+            { user_id2: userId }
+          ]
+        }
+      });
+
+      // Arkadaş listesini al
+      const friendships = await prisma.friend.findMany({
+        where: {
+          OR: [
+            { user_id1: userId },
+            { user_id2: userId }
+          ]
+        },
+        include: {
+          user1: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          },
+          user2: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          }
+        }
+      });
+
+      // Arkadaş listesini düzenle (userId'ye göre diğer kullanıcıyı göster)
+      const friends = friendships.map(friendship => {
+        return friendship.user_id1 === userId ? friendship.user2 : friendship.user1;
+      });
+
       return {
         success: true,
-        data: user
+        data: {
+          ...user,
+          stats: {
+            createdEventsCount,
+            participatedEventsCount,
+            averageRating,
+            friendsCount
+          },
+          friends // Arkadaş listesini ekle
+        }
       };
     } catch (error: any) {
       return {
         success: false,
-        message: 'Kullanıcı bilgileri alınırken bir hata oluştu',
-        code: 'GET_USER_ERROR',
+        message: 'Kullanıcı profili alınırken bir hata oluştu',
+        code: 'PROFILE_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }

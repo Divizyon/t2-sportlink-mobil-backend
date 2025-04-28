@@ -324,4 +324,56 @@ export class Friend {
       where: { id: requestId }
     });
   }
+
+  /**
+   * Kullanıcı için rastgele arkadaş önerileri getirir
+   * 
+   * @param userId Kullanıcı ID'si
+   * @param limit Önerilecek arkadaş sayısı
+   * @returns Önerilen kullanıcıların listesi
+   */
+  static async getSuggestedFriends(userId: string, limit: number = 5) {
+    // 1. Mevcut arkadaşları bul
+    const friends = await this.getFriends(userId);
+    const friendIds = friends.map(friend => friend.id);
+    
+    // 2. Bekleyen arkadaşlık isteklerini bul
+    const pendingRequests = await prisma.friendship_request.findMany({
+      where: {
+        OR: [
+          { sender_id: userId },
+          { receiver_id: userId }
+        ],
+        status: 'pending'
+      }
+    });
+    
+    const pendingRequestUserIds = pendingRequests.flatMap(request => 
+      [request.sender_id, request.receiver_id]
+    ).filter(id => id !== userId);
+    
+    // 3. Öneriye dahil edilmeyecek kullanıcı ID'leri
+    const excludeIds = [userId, ...friendIds, ...pendingRequestUserIds];
+    
+    // 4. Rastgele kullanıcıları getir
+    // Not: Rastgele seçim için SQL seviyesinde RANDOM() kullanıyoruz
+    const suggestedUsers = await prisma.$queryRaw`
+      SELECT 
+        id, 
+        username, 
+        first_name, 
+        last_name, 
+        profile_picture
+      FROM 
+        "user"
+      WHERE 
+        id != ANY(${excludeIds})
+      ORDER BY 
+        RANDOM()
+      LIMIT 
+        ${limit}
+    `;
+    
+    return suggestedUsers;
+  }
 } 

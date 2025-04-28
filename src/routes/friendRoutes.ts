@@ -6,7 +6,8 @@ import {
   removeFriend,
   getFriendRequests,
   getFriends,
-  checkFriendshipStatus
+  checkFriendshipStatus,
+  getSuggestedFriends
 } from '../controllers/friendController';
 import { authenticate } from '../middlewares/authMiddleware';
 
@@ -35,5 +36,8 @@ router.get('/', getFriends);
 
 // İki kullanıcının arkadaşlık durumunu kontrol et
 router.get('/status/:userId', checkFriendshipStatus);
+
+// Rastgele arkadaş önerileri al
+router.get('/suggestions', getSuggestedFriends);
 
 export default router; 

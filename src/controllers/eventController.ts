@@ -146,10 +146,18 @@ export const getEventById = async (req: Request, res: Response) => {
       });
     }
 
+    // Katılımcı sayısı
+    const participantCount = event._count?.participants || 0;
+    
+    // Katılımcı listesi
+    const participants = event.participants?.map((participant: any) => participant.user) || [];
+
     return res.status(200).json({
       success: true,
       data: {
-        event
+        event,
+        participant_count: participantCount,
+        participants
       }
     });
   } catch (error: any) {

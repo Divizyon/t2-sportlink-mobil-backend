@@ -47,6 +47,25 @@ export class Event {
       include: {
         creator: true,
         sport: true,
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                first_name: true,
+                last_name: true,
+                profile_picture: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            participants: true,
+            ratings: true,
+          },
+        },
       },
     });
   }

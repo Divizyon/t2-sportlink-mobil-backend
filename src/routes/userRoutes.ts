@@ -37,6 +37,12 @@ router.put('/profile/avatar', authenticate, isUser, upload.single('avatar'), use
 // İlgilenilen spor dallarını güncelle
 router.put('/profile/sports', authenticate, isUser, userController.updateSports);
 
+// İlgilenilen spor dallarını seç (sadece var olan spor dallarından)
+router.post('/profile/sport-interests', authenticate, isUser, userController.selectSportInterests);
+
+// İlgilenilen spor dallarına yeni bir tane ekle
+router.post('/profile/sport-interest', authenticate, isUser, userController.addSportInterest);
+
 // Başka bir kullanıcının profilini görüntüle
 router.get('/:userId', authenticate, isUser, userController.getUserProfile);
 

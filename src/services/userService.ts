@@ -9,6 +9,7 @@ interface ProfileUpdateData {
   phone?: string | null;
   default_location_latitude?: number;
   default_location_longitude?: number;
+  sportInterest?: SportUpdateData;
 }
 
 interface SportUpdateData {
@@ -148,6 +149,7 @@ export const userService = {
    */
   async updateProfile(userId: string, data: ProfileUpdateData) {
     try {
+      // Önce kullanıcı bilgilerini güncelle
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
@@ -170,10 +172,30 @@ export const userService = {
         }
       });
 
+      let sportResult = null;
+      
+      // Spor dalı eklemek için veri geldiyse, işlemi gerçekleştir
+      if (data.sportInterest) {
+        sportResult = await this.addSportInterest(userId, data.sportInterest);
+        
+        if (!sportResult.success) {
+          return {
+            success: false,
+            message: 'Profil güncellendi fakat spor dalı eklenirken hata oluştu',
+            code: 'SPORT_UPDATE_ERROR',
+            details: sportResult.message,
+            data: updatedUser
+          };
+        }
+      }
+
       return {
         success: true,
-        message: 'Profil başarıyla güncellendi',
-        data: updatedUser
+        message: data.sportInterest ? 'Profil bilgileri ve spor dalı başarıyla güncellendi' : 'Profil başarıyla güncellendi',
+        data: {
+          ...updatedUser,
+          sports: data.sportInterest ? sportResult?.data?.sports : undefined
+        }
       };
     } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -437,6 +459,203 @@ export const userService = {
         success: false,
         message: 'Kullanıcı profili alınırken bir hata oluştu',
         code: 'PROFILE_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  },
+
+  /**
+   * Kullanıcının ilgilendiği spor dallarını seçer
+   * Bu metot spor dallarının varlığını kontrol eder ve sadece kayıtlı spor dallarını ekler
+   */
+  async selectSportInterests(userId: string, sports: SportUpdateData[]) {
+    try {
+      // Kullanıcının varlığını kontrol et
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'Kullanıcı bulunamadı',
+          code: 'USER_NOT_FOUND'
+        };
+      }
+
+      // Tüm spor ID'lerini tek sorguda doğrula
+      const sportIds = sports.map(s => s.sportId);
+      const existingSports = await prisma.sport.findMany({
+        where: {
+          id: {
+            in: sportIds
+          }
+        },
+        select: {
+          id: true
+        }
+      });
+
+      // Bulunan spor ID'lerini diziye dönüştür
+      const validSportIds = existingSports.map(s => s.id);
+
+      // Geçersiz spor ID'lerini bul
+      const invalidSportIds = sportIds.filter(id => !validSportIds.includes(id));
+
+      if (invalidSportIds.length > 0) {
+        return {
+          success: false,
+          message: 'Bir veya daha fazla geçersiz spor dalı ID\'si',
+          code: 'INVALID_SPORT_IDS',
+          details: {
+            invalidSportIds
+          }
+        };
+      }
+
+      // Önce kullanıcının mevcut spor dallarını temizle
+      await prisma.user_sport.deleteMany({
+        where: { user_id: userId }
+      });
+
+      // Doğrulanmış spor dallarını ekle
+      for (const sport of sports) {
+        await prisma.user_sport.create({
+          data: {
+            user: {
+              connect: { id: userId }
+            },
+            sport: {
+              connect: { id: sport.sportId }
+            },
+            skill_level: sport.skillLevel
+          }
+        });
+      }
+
+      // Güncel kullanıcı spor dallarını getir
+      const updatedUserSports = await prisma.user_sport.findMany({
+        where: { user_id: userId },
+        include: { sport: true }
+      });
+
+      return {
+        success: true,
+        message: 'İlgilenilen spor dalları başarıyla kaydedildi',
+        data: {
+          sports: updatedUserSports.map(us => ({
+            id: us.sport.id,
+            name: us.sport.name,
+            icon: us.sport.icon,
+            skillLevel: us.skill_level
+          }))
+        }
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'Spor dalları kaydedilirken bir hata oluştu',
+        code: 'SELECT_SPORTS_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  },
+
+  /**
+   * Kullanıcının ilgi alanına yeni bir spor dalı ekler
+   * Mevcut ilgi alanları korunur
+   */
+  async addSportInterest(userId: string, sportData: SportUpdateData) {
+    try {
+      // Kullanıcının varlığını kontrol et
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'Kullanıcı bulunamadı',
+          code: 'USER_NOT_FOUND'
+        };
+      }
+
+      // Spor dalı ID'sinin geçerliliğini kontrol et
+      const sportExists = await prisma.sport.findUnique({
+        where: {
+          id: sportData.sportId
+        }
+      });
+
+      if (!sportExists) {
+        return {
+          success: false,
+          message: 'Geçersiz spor dalı ID\'si',
+          code: 'INVALID_SPORT_ID'
+        };
+      }
+
+      // Kullanıcının bu spor dalıyla zaten ilgilenip ilgilenmediğini kontrol et
+      const existingUserSport = await prisma.user_sport.findUnique({
+        where: {
+          user_id_sport_id: {
+            user_id: userId,
+            sport_id: sportData.sportId
+          }
+        }
+      });
+
+      if (existingUserSport) {
+        // Spor dalı zaten eklenmiş, sadece yetenek seviyesini güncelle
+        await prisma.user_sport.update({
+          where: {
+            user_id_sport_id: {
+              user_id: userId,
+              sport_id: sportData.sportId
+            }
+          },
+          data: {
+            skill_level: sportData.skillLevel
+          }
+        });
+      } else {
+        // Yeni spor dalını ekle
+        await prisma.user_sport.create({
+          data: {
+            user: {
+              connect: { id: userId }
+            },
+            sport: {
+              connect: { id: sportData.sportId }
+            },
+            skill_level: sportData.skillLevel
+          }
+        });
+      }
+
+      // Güncel kullanıcı spor dallarını getir
+      const updatedUserSports = await prisma.user_sport.findMany({
+        where: { user_id: userId },
+        include: { sport: true }
+      });
+
+      return {
+        success: true,
+        message: existingUserSport ? 'Spor dalı yetenek seviyesi güncellendi' : 'Spor dalı ilgi alanlarına eklendi',
+        data: {
+          sports: updatedUserSports.map(us => ({
+            id: us.sport.id,
+            name: us.sport.name,
+            icon: us.sport.icon,
+            skillLevel: us.skill_level
+          }))
+        }
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'Spor dalı eklenirken bir hata oluştu',
+        code: 'ADD_SPORT_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }

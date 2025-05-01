@@ -199,13 +199,34 @@ export class Friend {
             username: true,
             first_name: true,
             last_name: true,
-            profile_picture: true
+            profile_picture: true,
+            user_sports: {
+              include: {
+                sport: true
+              }
+            }
           }
         }
       },
       orderBy: {
         created_at: 'desc'
       }
+    }).then(requests => {
+      return requests.map(request => {
+        const sender = request.sender;
+        return {
+          ...request,
+          sender: {
+            ...sender,
+            interests: sender.user_sports.map(sport => ({
+              id: sport.sport.id,
+              name: sport.sport.name,
+              icon: sport.sport.icon,
+              skill_level: sport.skill_level
+            }))
+          }
+        };
+      });
     });
   }
 
@@ -227,7 +248,12 @@ export class Friend {
             username: true,
             first_name: true,
             last_name: true,
-            profile_picture: true
+            profile_picture: true,
+            user_sports: {
+              include: {
+                sport: true
+              }
+            }
           }
         },
         user2: {
@@ -236,7 +262,12 @@ export class Friend {
             username: true,
             first_name: true,
             last_name: true,
-            profile_picture: true
+            profile_picture: true,
+            user_sports: {
+              include: {
+                sport: true
+              }
+            }
           }
         }
       }
@@ -244,7 +275,16 @@ export class Friend {
 
     // Her bir arkadaşlık için mevcut kullanıcı olmayan tarafı döndür
     return friendships.map(friendship => {
-      return friendship.user1.id === userId ? friendship.user2 : friendship.user1;
+      const friend = friendship.user1.id === userId ? friendship.user2 : friendship.user1;
+      return {
+        ...friend,
+        interests: friend.user_sports.map(sport => ({
+          id: sport.sport.id,
+          name: sport.sport.name,
+          icon: sport.sport.icon,
+          skill_level: sport.skill_level
+        }))
+      };
     });
   }
 
@@ -355,25 +395,44 @@ export class Friend {
     // 3. Öneriye dahil edilmeyecek kullanıcı ID'leri
     const excludeIds = [userId, ...friendIds, ...pendingRequestUserIds];
     
-    // 4. Rastgele kullanıcıları getir
-    // Not: Rastgele seçim için SQL seviyesinde RANDOM() kullanıyoruz
-    const suggestedUsers = await prisma.$queryRaw`
-      SELECT 
-        id, 
-        username, 
-        first_name, 
-        last_name, 
-        profile_picture
-      FROM 
-        "user"
-      WHERE 
-        id != ANY(${excludeIds})
-      ORDER BY 
-        RANDOM()
-      LIMIT 
-        ${limit}
-    `;
+    // 4. Rastgele kullanıcıları getir (user_sports ilişkisiyle birlikte)
+    const suggestedUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          notIn: excludeIds
+        }
+      },
+      select: {
+        id: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        user_sports: {
+          include: {
+            sport: true
+          }
+        }
+      },
+      orderBy: {
+        created_at: 'desc'
+      },
+      take: limit
+    });
     
-    return suggestedUsers;
+    // 5. Kullanıcıların spor ilgilerini görüntülenebilir formata dönüştür
+    return suggestedUsers.map(user => ({
+      id: user.id,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      profile_picture: user.profile_picture,
+      interests: user.user_sports.map(sport => ({
+        id: sport.sport.id,
+        name: sport.sport.name,
+        icon: sport.sport.icon,
+        skill_level: sport.skill_level
+      }))
+    }));
   }
 } 

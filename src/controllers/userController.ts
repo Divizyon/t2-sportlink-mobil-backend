@@ -9,6 +9,11 @@ const profileUpdateSchema = z.object({
   phone: z.string().nullable().optional(),
   default_location_latitude: z.number().optional(),
   default_location_longitude: z.number().optional(),
+  // İlgilenilen yeni spor dalını eklemek için
+  sportInterest: z.object({
+    sportId: z.string().uuid('Geçerli bir spor ID\'si giriniz'),
+    skillLevel: z.string().min(1, 'Yetenek seviyesi boş olamaz')
+  }).optional(),
 });
 
 // Spor dalları güncelleme için validasyon şeması
@@ -18,6 +23,12 @@ const sportsUpdateSchema = z.array(
     skillLevel: z.string().min(1, 'Yetenek seviyesi boş olamaz'),
   })
 );
+
+// Tekil spor dalı ekleme/güncelleme için validasyon şeması
+const sportInterestSchema = z.object({
+  sportId: z.string().uuid('Geçerli bir spor ID\'si giriniz'),
+  skillLevel: z.string().min(1, 'Yetenek seviyesi boş olamaz'),
+});
 
 export const userController = {
   /**
@@ -153,5 +164,73 @@ export const userController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
+
+  /**
+   * Kullanıcının ilgilendiği spor dallarını seçer
+   * Bu endpoint ile kullanıcılar sadece sistemde kayıtlı spor dallarını seçebilir
+   */
+  async selectSportInterests(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      
+      // Veri doğrulama
+      const validationResult = sportsUpdateSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        res.status(400).json({
+          success: false,
+          message: 'Doğrulama hatası',
+          errors: validationResult.error.errors,
+          code: 'VALIDATION_ERROR'
+        });
+        return;
+      }
+      
+      const result = await userService.selectSportInterests(userId, validationResult.data);
+      
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Kullanıcının ilgi alanına yeni bir spor dalı ekler
+   * Diğer ilgi alanları korunur
+   */
+  async addSportInterest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      
+      // Veri doğrulama
+      const validationResult = sportInterestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        res.status(400).json({
+          success: false,
+          message: 'Doğrulama hatası',
+          errors: validationResult.error.errors,
+          code: 'VALIDATION_ERROR'
+        });
+        return;
+      }
+      
+      const result = await userService.addSportInterest(userId, validationResult.data);
+      
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 }; 

@@ -104,3 +104,51 @@ export const getUserDeviceTokens = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * Kullanıcının kendi cihaz tokenlarını getir
+ * Bu endpoint kullanıcının kaç farklı cihazda oturum açtığını ve ne zaman hesap açtığını gösterir
+ */
+export const getMyDeviceTokens = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    
+    const tokens = await prisma.deviceToken.findMany({
+      where: { user_id: userId },
+      orderBy: { created_at: 'desc' }
+    });
+    
+    // Kullanıcı hesap bilgilerini getir
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        created_at: true,
+        updated_at: true,
+        username: true,
+        first_name: true,
+        last_name: true
+      }
+    });
+    
+    return res.status(200).json({ 
+      success: true,
+      data: {
+        user: user,
+        deviceCount: tokens.length,
+        devices: tokens.map(token => ({
+          id: token.id,
+          platform: token.platform,
+          created_at: token.created_at,
+          updated_at: token.updated_at
+        }))
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching my device tokens:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Cihaz tokenları alınırken bir hata oluştu',
+      code: 'DEVICE_TOKEN_FETCH_ERROR'
+    });
+  }
+};

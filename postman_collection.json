@@ -171,16 +171,155 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\",\n  \"phone\": \"+901234567890\",\n  \"profile_picture\": \"http://example.com/profile.jpg\",\n  \"default_location_latitude\": 41.0082,\n  \"default_location_longitude\": 28.9784\n}"
+              "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\",\n  \"phone\": \"+901234567890\",\n  \"profile_picture\": \"http://example.com/profile.jpg\",\n  \"default_location_latitude\": 41.0082,\n  \"default_location_longitude\": 28.9784,\n  \"sportInterest\": {\n    \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"skillLevel\": \"beginner\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/users/profile",
               "host": ["{{base_url}}"],
               "path": ["api", "users", "profile"]
             },
-            "description": "Kullanıcı profil bilgilerini günceller"
+            "description": "Kullanıcı profil bilgilerini günceller. Opsiyonel olarak sportInterest alanıyla birlikte bir spor dalına ilgi belirtilebilir. İlgi alanı belirtilirse mevcut ilgi alanları korunur ve yeni spor dalı eklenir veya mevcut spor dalının yetenek seviyesi güncellenir."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\",\n  \"phone\": \"+901234567890\",\n  \"default_location_latitude\": 41.0082,\n  \"default_location_longitude\": 28.9784,\n  \"sportInterest\": {\n    \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"skillLevel\": \"beginner\"\n  }\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profil bilgileri ve spor dalı başarıyla güncellendi\",\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"username\": \"johndoe\",\n    \"email\": \"john@example.com\",\n    \"first_name\": \"Updated\",\n    \"last_name\": \"Name\",\n    \"phone\": \"+901234567890\",\n    \"profile_picture\": \"http://example.com/profiles/john.jpg\",\n    \"default_location_latitude\": 41.0082,\n    \"default_location_longitude\": 28.9784,\n    \"sports\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"name\": \"Futbol\",\n        \"icon\": \"football.png\",\n        \"skillLevel\": \"beginner\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"Basketbol\",\n        \"icon\": \"basketball.png\",\n        \"skillLevel\": \"intermediate\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "İlgi Alanına Tek Spor Dalı Ekle",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"skillLevel\": \"beginner\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/profile/sport-interest",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile", "sport-interest"]
+            },
+            "description": "Kullanıcının ilgi alanlarına tek bir spor dalı ekler. Mevcut ilgi alanları korunur ve yeni spor dalı listeye eklenir. Eğer eklenmek istenen spor dalı zaten kullanıcının ilgi alanındaysa, sadece yetenek seviyesi güncellenir."
+          },
+          "response": [
+            {
+              "name": "Yeni Spor Ekleme Başarılı Yanıt",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile/sport-interest",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile", "sport-interest"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"skillLevel\": \"beginner\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Spor dalı ilgi alanlarına eklendi\",\n  \"data\": {\n    \"sports\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"name\": \"Futbol\",\n        \"icon\": \"football.png\",\n        \"skillLevel\": \"beginner\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"Basketbol\",\n        \"icon\": \"basketball.png\",\n        \"skillLevel\": \"intermediate\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n        \"name\": \"Yüzme\",\n        \"icon\": \"swimming.png\",\n        \"skillLevel\": \"advanced\"\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "Spor Dalı Güncelleme Başarılı Yanıt",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile/sport-interest",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile", "sport-interest"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sportId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"skillLevel\": \"advanced\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Spor dalı yetenek seviyesi güncellendi\",\n  \"data\": {\n    \"sports\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"name\": \"Futbol\",\n        \"icon\": \"football.png\",\n        \"skillLevel\": \"advanced\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"Basketbol\",\n        \"icon\": \"basketball.png\",\n        \"skillLevel\": \"intermediate\"\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "Geçersiz Spor ID'si Hatası",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile/sport-interest",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile", "sport-interest"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sportId\": \"550e8400-e29b-41d4-a716-446655440999\",\n  \"skillLevel\": \"beginner\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Geçersiz spor dalı ID'si\",\n  \"code\": \"INVALID_SPORT_ID\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -1060,42 +1199,46 @@
                 }
               ]
             },
-            "description": "Kullanıcıya gelen arkadaşlık isteklerini listeler"
+            "description": "Kullanıcıya gelen arkadaşlık isteklerini listeler. İstek gönderen kullanıcıların ilgilendiği spor dalları 'interests' alanında döndürülür."
           },
-          "response": []
-        },
-        {
-          "name": "Arkadaşları Listele",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/friends/requests?page=1&limit=10&status=pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "friends", "requests"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    }
+                  ]
                 }
-              ]
-            },
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/friends?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "friends"],
-              "query": [
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
                 {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
+                  "key": "Content-Type",
+                  "value": "application/json"
                 }
-              ]
-            },
-            "description": "Kullanıcının tüm arkadaşlarını listeler"
-          },
-          "response": []
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"requests\": [\n      {\n        \"id\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n        \"sender_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"receiver_id\": \"current-user-id\",\n        \"status\": \"pending\",\n        \"created_at\": \"2023-06-15T10:30:00Z\",\n        \"updated_at\": \"2023-06-15T10:30:00Z\",\n        \"sender\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n          \"username\": \"ahmet123\",\n          \"first_name\": \"Ahmet\",\n          \"last_name\": \"Yılmaz\",\n          \"profile_picture\": \"http://example.com/profiles/ahmet.jpg\",\n          \"interests\": [\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n              \"name\": \"Futbol\",\n              \"icon\": \"football.png\",\n              \"skill_level\": \"advanced\"\n            },\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n              \"name\": \"Basketbol\",\n              \"icon\": \"basketball.png\",\n              \"skill_level\": \"intermediate\"\n            }\n          ]\n        }\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440010\",\n        \"sender_id\": \"550e8400-e29b-41d4-a716-446655440004\",\n        \"receiver_id\": \"current-user-id\",\n        \"status\": \"pending\",\n        \"created_at\": \"2023-06-14T15:45:00Z\",\n        \"updated_at\": \"2023-06-14T15:45:00Z\",\n        \"sender\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n          \"username\": \"ayse456\",\n          \"first_name\": \"Ayşe\",\n          \"last_name\": \"Demir\",\n          \"profile_picture\": \"http://example.com/profiles/ayse.jpg\",\n          \"interests\": [\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n              \"name\": \"Tenis\",\n              \"icon\": \"tennis.png\",\n              \"skill_level\": \"advanced\"\n            }\n          ]\n        }\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 2,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Arkadaşlık Durumunu Kontrol Et",
@@ -1155,6 +1298,72 @@
             "description": "Kullanıcı için rastgele arkadaş önerileri getirir"
           },
           "response": []
+        },
+        {
+          "name": "Arkadaşları Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/friends?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "friends"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Kullanıcının tüm arkadaşlarını listeler. Her arkadaş için temel profil bilgilerinin yanı sıra ilgilendiği spor dalları da 'interests' alanında döndürülür."
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/friends?page=1&limit=10",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "friends"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"friends\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"username\": \"ahmet123\",\n        \"first_name\": \"Ahmet\",\n        \"last_name\": \"Yılmaz\",\n        \"profile_picture\": \"http://example.com/profiles/ahmet.jpg\",\n        \"interests\": [\n          {\n            \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n            \"name\": \"Futbol\",\n            \"icon\": \"football.png\",\n            \"skill_level\": \"advanced\"\n          },\n          {\n            \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n            \"name\": \"Basketbol\",\n            \"icon\": \"basketball.png\",\n            \"skill_level\": \"intermediate\"\n          }\n        ]\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n        \"username\": \"ayse456\",\n        \"first_name\": \"Ayşe\",\n        \"last_name\": \"Demir\",\n        \"profile_picture\": \"http://example.com/profiles/ayse.jpg\",\n        \"interests\": [\n          {\n            \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n            \"name\": \"Tenis\",\n            \"icon\": \"tennis.png\",\n            \"skill_level\": \"advanced\"\n          },\n          {\n            \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n            \"name\": \"Basketbol\",\n            \"icon\": \"basketball.png\",\n            \"skill_level\": \"beginner\"\n          }\n        ]\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 2,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -1619,6 +1828,119 @@
             "description": "Belirli bir kullanıcının kayıtlı cihaz tokenlarını listeler. Sadece admin kullanıcılar erişebilir."
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cihaz Token Yönetimi",
+      "description": "Kullanıcı cihaz tokenları için yönetim API'leri",
+      "item": [
+        {
+          "name": "Token Kaydet",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]\",\n  \"platform\": \"expo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/devices/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "register"]
+            },
+            "description": "Kullanıcının cihaz token bilgisini kaydeder"
+          },
+          "response": []
+        },
+        {
+          "name": "Token Sil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/devices/unregister",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "unregister"]
+            },
+            "description": "Kullanıcının cihaz token bilgisini siler"
+          },
+          "response": []
+        },
+        {
+          "name": "Cihazlarımı Listele",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/devices/my-devices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "devices", "my-devices"]
+            },
+            "description": "Kullanıcının oturum açtığı tüm cihazları, cihaz sayısını ve hesap bilgilerini listeler"
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/devices/my-devices",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "devices", "my-devices"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"created_at\": \"2023-08-15T14:30:00.000Z\",\n      \"updated_at\": \"2023-09-10T11:20:45.000Z\",\n      \"username\": \"testuser\",\n      \"first_name\": \"Test\",\n      \"last_name\": \"User\"\n    },\n    \"deviceCount\": 2,\n    \"devices\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"platform\": \"ios\",\n        \"created_at\": \"2023-10-05T09:15:30.000Z\",\n        \"updated_at\": \"2023-10-05T09:15:30.000Z\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"platform\": \"android\",\n        \"created_at\": \"2023-09-20T14:22:10.000Z\",\n        \"updated_at\": \"2023-09-20T14:22:10.000Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
         }
       ]
     }

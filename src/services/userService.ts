@@ -63,6 +63,86 @@ export const userService = {
         where: { user_id: userId }
       });
 
+      // Kullanıcının katıldığı aktif etkinlikleri al
+      const participatedEvents = await prisma.event_participant.findMany({
+        where: { 
+          user_id: userId,
+          // Artık tüm etkinlikleri getireceğimiz için status ve tarih filtrelerini kaldırıyoruz
+          /* event: {
+            status: "active", // Sadece aktif etkinlikleri getir
+            event_date: {
+              gte: new Date() // Bugün ve sonrası etkinlikler
+            }
+          } */
+        },
+        include: {
+          event: {
+            include: {
+              sport: true,
+              creator: {
+                select: {
+                  id: true,
+                  username: true,
+                  first_name: true,
+                  last_name: true,
+                  profile_picture: true
+                }
+              },
+              _count: {
+                select: {
+                  participants: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          event: {
+            event_date: 'desc' // En son katılınan etkinlikler önce gösterilsin
+          }
+        },
+        take: 10 // Son 10 etkinliği getir
+      });
+
+      // İki farklı kategoride etkinlikleri ayıralım: Gelecek ve Geçmiş
+      const now = new Date();
+      
+      // Formatlarken kategorilere ayıralım
+      const upcomingEvents: any[] = [];
+      const pastEvents: any[] = []; 
+
+      participatedEvents.forEach(participation => {
+        const { event } = participation;
+        const formattedEvent = {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          event_date: event.event_date,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          location_name: event.location_name,
+          location_latitude: event.location_latitude,
+          location_longitude: event.location_longitude,
+          is_private: event.is_private,
+          status: event.status,
+          sport: {
+            id: event.sport.id,
+            name: event.sport.name,
+            icon: event.sport.icon
+          },
+          creator: event.creator,
+          participant_count: event._count.participants,
+          max_participants: event.max_participants
+        };
+
+        // Tarih kontrolü yaparak ilgili listeye ekle
+        if (new Date(event.event_date) >= now) {
+          upcomingEvents.push(formattedEvent);
+        } else {
+          pastEvents.push(formattedEvent);
+        }
+      });
+
       // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
       const userRatings = await prisma.user_rating.findMany({
         where: { rated_user_id: userId },
@@ -131,7 +211,9 @@ export const userService = {
             averageRating,
             friendsCount
           },
-          friends // Arkadaş listesini ekle
+          friends, // Arkadaş listesini ekle
+          upcomingEvents, // Gelecek etkinlikleri ekle
+          pastEvents // Geçmiş etkinlikleri ekle
         }
       };
     } catch (error: any) {
@@ -355,8 +437,6 @@ export const userService = {
           first_name: true,
           last_name: true,
           profile_picture: true,
-          role: true,
-          created_at: true,
           user_sports: {
             include: {
               sport: true
@@ -383,6 +463,86 @@ export const userService = {
         where: { user_id: userId }
       });
 
+      // Kullanıcının katıldığı aktif etkinlikleri al
+      const participatedEvents = await prisma.event_participant.findMany({
+        where: { 
+          user_id: userId,
+          // Artık tüm etkinlikleri getireceğimiz için status ve tarih filtrelerini kaldırıyoruz
+          /* event: {
+            status: "active", // Sadece aktif etkinlikleri getir
+            event_date: {
+              gte: new Date() // Bugün ve sonrası etkinlikler
+            }
+          } */
+        },
+        include: {
+          event: {
+            include: {
+              sport: true,
+              creator: {
+                select: {
+                  id: true,
+                  username: true,
+                  first_name: true,
+                  last_name: true,
+                  profile_picture: true
+                }
+              },
+              _count: {
+                select: {
+                  participants: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          event: {
+            event_date: 'desc' // En son katılınan etkinlikler önce gösterilsin
+          }
+        },
+        take: 10 // Son 10 etkinliği getir
+      });
+
+      // İki farklı kategoride etkinlikleri ayıralım: Gelecek ve Geçmiş
+      const now = new Date();
+      
+      // Formatlarken kategorilere ayıralım
+      const upcomingEvents: any[] = [];
+      const pastEvents: any[] = []; 
+
+      participatedEvents.forEach(participation => {
+        const { event } = participation;
+        const formattedEvent = {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          event_date: event.event_date,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          location_name: event.location_name,
+          location_latitude: event.location_latitude,
+          location_longitude: event.location_longitude,
+          is_private: event.is_private,
+          status: event.status,
+          sport: {
+            id: event.sport.id,
+            name: event.sport.name,
+            icon: event.sport.icon
+          },
+          creator: event.creator,
+          participant_count: event._count.participants,
+          max_participants: event.max_participants
+        };
+
+        // Tarih kontrolü yaparak ilgili listeye ekle
+        if (new Date(event.event_date) >= now) {
+          upcomingEvents.push(formattedEvent);
+        } else {
+          pastEvents.push(formattedEvent);
+        }
+      });
+
       // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
       const userRatings = await prisma.user_rating.findMany({
         where: { rated_user_id: userId },
@@ -396,62 +556,31 @@ export const userService = {
         averageRating = parseFloat((totalRating / userRatings.length).toFixed(1));
       }
 
-      // Arkadaş sayısını al
-      const friendsCount = await prisma.friend.count({
-        where: {
-          OR: [
-            { user_id1: userId },
-            { user_id2: userId }
-          ]
-        }
-      });
-
-      // Arkadaş listesini al
-      const friendships = await prisma.friend.findMany({
-        where: {
-          OR: [
-            { user_id1: userId },
-            { user_id2: userId }
-          ]
-        },
-        include: {
-          user1: {
-            select: {
-              id: true,
-              username: true,
-              first_name: true,
-              last_name: true,
-              profile_picture: true
-            }
-          },
-          user2: {
-            select: {
-              id: true,
-              username: true,
-              first_name: true,
-              last_name: true,
-              profile_picture: true
-            }
-          }
-        }
-      });
-
-      // Arkadaş listesini düzenle (userId'ye göre diğer kullanıcıyı göster)
-      const friends = friendships.map(friendship => {
-        return friendship.user_id1 === userId ? friendship.user2 : friendship.user1;
-      });
+      // Kullanıcının spor dallarını standart formata dönüştür
+      const sports = user.user_sports.map((userSport) => ({
+        id: userSport.sport.id,
+        name: userSport.sport.name,
+        icon: userSport.sport.icon,
+        description: userSport.sport.description,
+        skillLevel: userSport.skill_level
+      }));
 
       return {
         success: true,
         data: {
-          ...user,
+          id: user.id,
+          username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          profile_picture: user.profile_picture,
+          sports,
           stats: {
             createdEventsCount,
             participatedEventsCount,
-            averageRating,
-            friendsCount
+            averageRating
           },
-          friends // Arkadaş listesini ekle
+          upcomingEvents, // Gelecek etkinlikleri ekle
+          pastEvents // Geçmiş etkinlikleri ekle
         }
       };
     } catch (error: any) {

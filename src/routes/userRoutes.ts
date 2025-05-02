@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import express from 'express';
 import { authenticate, isUser, isAdmin, isSuperAdmin, isResourceOwner } from '../middlewares/authMiddleware';
 import { userController } from '../controllers/userController';
 import multer from 'multer';
@@ -32,7 +33,11 @@ router.get('/profile', authenticate, isUser, userController.getProfile);
 router.put('/profile', authenticate, isUser, userController.updateProfile);
 
 // Profil fotoğrafı güncelle
-router.put('/profile/avatar', authenticate, isUser, upload.single('avatar'), userController.updateProfilePicture);
+// TypeScript hatası için middleware'i unknown olarak dönüştürüyoruz
+router.put('/profile/avatar', authenticate, isUser, (upload.single('avatar') as unknown) as express.RequestHandler, userController.updateProfilePicture);
+
+// Kullanıcı konum bilgisini güncelle
+router.put('/profile/location', authenticate, isUser, userController.updateLocation);
 
 // İlgilenilen spor dallarını güncelle
 router.put('/profile/sports', authenticate, isUser, userController.updateSports);

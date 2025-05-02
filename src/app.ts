@@ -16,6 +16,7 @@ import newsRoutes from './routes/newsRoutes';
 import announcementRoutes from './routes/announcementRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import deviceRoutes from './routes/deviceRoutes';
+import mapsRoutes from './routes/mapsRoutes';
 import { setupRealtimeTables } from './config/supabase';
 
 
@@ -29,7 +30,8 @@ const app = express();
 // Temel Middleware
 app.use(cors());
 app.use(helmet());
-app.use(compression());
+// TypeScript hatası nedeniyle compression fonksiyonunu bu şekilde uyguluyoruz
+app.use((compression() as unknown) as express.RequestHandler);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
@@ -64,6 +66,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/devices', deviceRoutes);
+app.use('/api/maps', mapsRoutes);
 
 // 404 handler
 app.use((_: Request, res: Response) => {

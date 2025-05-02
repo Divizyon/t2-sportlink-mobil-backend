@@ -119,8 +119,8 @@ export const messageController = {
   async sendMediaMessage(req: Request, res: Response) {
     return new Promise<void>((resolve, reject) => {
       try {
-        // Dosya yükleme işlemi için middleware
-        upload.single('media')(req, res, async (err) => {
+        // Dosya yükleme işlemi için middleware - req ve res tiplerini any olarak belirterek tip uyumsuzluğunu gideriyoruz
+        upload.single('media')(req as any, res as any, async (err) => {
           if (err) {
             res.status(400).json({
               success: false,

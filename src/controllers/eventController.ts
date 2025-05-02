@@ -544,6 +544,7 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
     const latitude = parseFloat(req.query.latitude as string);
     const longitude = parseFloat(req.query.longitude as string);
     const radius = parseFloat(req.query.radius as string) || 10; // km cinsinden varsayılan 10km
+    const useDistanceMatrix = req.query.useDistanceMatrix === 'true'; // Google Maps Distance Matrix API kullanımı için flag
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({
@@ -552,7 +553,68 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
       });
     }
 
-    const events = await EventWithExtensions.findNearby(latitude, longitude, radius);
+    // Önce basit coğrafi sorgular ile yaklaşık etkinlikleri bul
+    let events = await EventWithExtensions.findNearby(latitude, longitude, radius);
+
+    // Eğer Distance Matrix API kullanımı isteniyorsa
+    if (useDistanceMatrix && events.length > 0) {
+      try {
+        // İçe aktarma işlemini burada yap, böylece performans açısından
+        // sadece ihtiyaç olduğunda yüklenir
+        const { calculateBulkDistances } = await import('../utils/maps.util');
+        
+        // Etkinliklerin konumlarını topla
+        const destinations = events.map(event => ({
+          id: event.id,
+          lat: event.location_latitude,
+          lng: event.location_longitude
+        }));
+        
+        // Bulk mesafe hesaplaması yap
+        const distanceResults = await calculateBulkDistances(
+          { lat: latitude, lng: longitude },
+          destinations
+        );
+        
+        // Sonuçları etkinliklere ekle
+        if (distanceResults.success) {
+          // Her etkinlik için mesafe bilgisini ekle
+          events = events.map(event => {
+            const distanceInfo = distanceResults.results.find(r => r.id === event.id);
+            if (!distanceInfo) return event;
+            
+            // Prisma modeline yeni alan eklenemiyor, bu yüzden raw object olarak dönüştürüp
+            // yeni alanları ekliyoruz (Prisma modelindeki type kontrolünü bu şekilde aşıyoruz)
+            const eventWithDistance = {
+              ...event,
+              distance_info: {
+                distance: distanceInfo.distance,
+                duration: distanceInfo.duration,
+                distance_text: distanceInfo.distanceText,
+                duration_text: distanceInfo.durationText
+              }
+            };
+            
+            return eventWithDistance;
+          });
+          
+          // Gerçek mesafeye göre sırala
+          events.sort((a: any, b: any) => {
+            const distA = a.distance_info?.distance || Infinity;
+            const distB = b.distance_info?.distance || Infinity;
+            return distA - distB;
+          });
+          
+          // Gerçek mesafeye göre filtrele (metre cinsinden)
+          events = events.filter((event: any) => 
+            !event.distance_info || event.distance_info.distance <= radius * 1000
+          );
+        }
+      } catch (distanceError) {
+        console.error('Distance Matrix API hatası:', distanceError);
+        // API hatası durumunda orijinal sorgu sonuçlarını kullan
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -564,7 +626,8 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
           location: {
             latitude,
             longitude
-          }
+          },
+          useDistanceMatrix
         }
       }
     });

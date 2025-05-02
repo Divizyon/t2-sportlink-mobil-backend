@@ -490,10 +490,10 @@
         {
           "name": "Etkinlik Detayı",
           "request": {
-            "method": "GET",
-            "url": {
+                "method": "GET",
+                "url": {
               "raw": "{{base_url}}/api/events/:eventId",
-              "host": ["{{base_url}}"],
+                  "host": ["{{base_url}}"],
               "path": ["api", "events", ":eventId"],
               "variable": [
                 {
@@ -588,12 +588,12 @@
               ]
             },
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"invitation_code\": null\n}"
@@ -666,9 +666,9 @@
               ]
             },
             "method": "GET",
-            "url": {
+                "url": {
               "raw": "{{base_url}}/api/events/:eventId/invitation",
-              "host": ["{{base_url}}"],
+                  "host": ["{{base_url}}"],
               "path": ["api", "events", ":eventId", "invitation"],
               "variable": [
                 {
@@ -724,12 +724,12 @@
               ]
             },
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"rating\": 5,\n  \"review\": \"Harika bir etkinlikti!\"\n}"
@@ -1252,12 +1252,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
               "cookie": [],
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"requests\": [\n      {\n        \"id\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n        \"sender_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"receiver_id\": \"current-user-id\",\n        \"status\": \"pending\",\n        \"created_at\": \"2023-06-15T10:30:00Z\",\n        \"updated_at\": \"2023-06-15T10:30:00Z\",\n        \"sender\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n          \"username\": \"ahmet123\",\n          \"first_name\": \"Ahmet\",\n          \"last_name\": \"Yılmaz\",\n          \"profile_picture\": \"http://example.com/profiles/ahmet.jpg\",\n          \"interests\": [\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n              \"name\": \"Futbol\",\n              \"icon\": \"football.png\",\n              \"skill_level\": \"advanced\"\n            },\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n              \"name\": \"Basketbol\",\n              \"icon\": \"basketball.png\",\n              \"skill_level\": \"intermediate\"\n            }\n          ]\n        }\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440010\",\n        \"sender_id\": \"550e8400-e29b-41d4-a716-446655440004\",\n        \"receiver_id\": \"current-user-id\",\n        \"status\": \"pending\",\n        \"created_at\": \"2023-06-14T15:45:00Z\",\n        \"updated_at\": \"2023-06-14T15:45:00Z\",\n        \"sender\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n          \"username\": \"ayse456\",\n          \"first_name\": \"Ayşe\",\n          \"last_name\": \"Demir\",\n          \"profile_picture\": \"http://example.com/profiles/ayse.jpg\",\n          \"interests\": [\n            {\n              \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n              \"name\": \"Tenis\",\n              \"icon\": \"tennis.png\",\n              \"skill_level\": \"advanced\"\n            }\n          ]\n        }\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 2,\n      \"totalPages\": 1\n    }\n  }\n}"
             }
@@ -1962,6 +1962,180 @@
               "header": [],
               "cookie": [],
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"created_at\": \"2023-08-15T14:30:00.000Z\",\n      \"updated_at\": \"2023-09-10T11:20:45.000Z\",\n      \"username\": \"testuser\",\n      \"first_name\": \"Test\",\n      \"last_name\": \"User\"\n    },\n    \"deviceCount\": 2,\n    \"devices\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"platform\": \"ios\",\n        \"created_at\": \"2023-10-05T09:15:30.000Z\",\n        \"updated_at\": \"2023-10-05T09:15:30.000Z\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"platform\": \"android\",\n        \"created_at\": \"2023-09-20T14:22:10.000Z\",\n        \"updated_at\": \"2023-09-20T14:22:10.000Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Google Maps API",
+      "description": "Google Maps Distance Matrix API entegrasyonu",
+      "item": [
+        {
+          "name": "İki Konum Arası Mesafe Hesaplama",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/maps/distance?originLat=41.0082&originLng=28.9784&destLat=40.9916&destLng=29.0286&mode=driving",
+              "host": ["{{base_url}}"],
+              "path": ["api", "maps", "distance"],
+              "query": [
+                {
+                  "key": "originLat",
+                  "value": "41.0082",
+                  "description": "Başlangıç noktası enlem"
+                },
+                {
+                  "key": "originLng",
+                  "value": "28.9784",
+                  "description": "Başlangıç noktası boylam"
+                },
+                {
+                  "key": "destLat",
+                  "value": "40.9916",
+                  "description": "Varış noktası enlem"
+                },
+                {
+                  "key": "destLng",
+                  "value": "29.0286",
+                  "description": "Varış noktası boylam"
+                },
+                {
+                  "key": "mode",
+                  "value": "driving",
+                  "description": "Ulaşım modu (driving, walking, bicycling, transit)"
+                }
+              ]
+            },
+            "description": "İki konum arasındaki gerçek seyahat mesafesini ve süresini hesaplar"
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/maps/distance?originLat=41.0082&originLng=28.9784&destLat=40.9916&destLng=29.0286&mode=driving"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"distance\": {\n      \"text\": \"14.6 km\",\n      \"value\": 14600\n    },\n    \"duration\": {\n      \"text\": \"28 dakika\",\n      \"value\": 1680\n    },\n    \"status\": \"OK\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Toplu Mesafe Hesaplama",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": {\n    \"latitude\": 41.0082,\n    \"longitude\": 28.9784\n  },\n  \"destinations\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"latitude\": 40.9916,\n      \"longitude\": 29.0286\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"latitude\": 41.0214,\n      \"longitude\": 29.0097\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"latitude\": 41.0342,\n      \"longitude\": 28.9831\n    }\n  ],\n  \"mode\": \"driving\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/maps/bulk-distances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "maps", "bulk-distances"]
+            },
+            "description": "Bir konumdan birden çok hedef noktaya olan gerçek seyahat mesafelerini toplu hesaplar"
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/maps/bulk-distances"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"origin\": {\n    \"latitude\": 41.0082,\n    \"longitude\": 28.9784\n  },\n  \"destinations\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"latitude\": 40.9916,\n      \"longitude\": 29.0286\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"latitude\": 41.0214,\n      \"longitude\": 29.0097\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"latitude\": 41.0342,\n      \"longitude\": 28.9831\n    }\n  ],\n  \"mode\": \"driving\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"distance\": {\n        \"text\": \"14.6 km\",\n        \"value\": 14600\n      },\n      \"duration\": {\n        \"text\": \"28 dakika\",\n        \"value\": 1680\n      },\n      \"status\": \"OK\"\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"distance\": {\n        \"text\": \"7.3 km\",\n        \"value\": 7300\n      },\n      \"duration\": {\n        \"text\": \"17 dakika\",\n        \"value\": 1020\n      },\n      \"status\": \"OK\"\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"distance\": {\n        \"text\": \"3.5 km\",\n        \"value\": 3500\n      },\n      \"duration\": {\n        \"text\": \"12 dakika\",\n        \"value\": 720\n      },\n      \"status\": \"OK\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Mesafe Hesaplamalı Yakındaki Etkinlikler",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/events/nearby?latitude=41.0082&longitude=28.9784&radius=10&useDistanceMatrix=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "41.0082"
+                },
+                {
+                  "key": "longitude",
+                  "value": "28.9784"
+                },
+                {
+                  "key": "radius",
+                  "value": "10",
+                  "description": "Kilometre cinsinden yarıçap"
+                },
+                {
+                  "key": "useDistanceMatrix",
+                  "value": "true",
+                  "description": "Google Maps API ile gerçek seyahat mesafesini hesapla"
+                },
+                {
+                  "key": "mode",
+                  "value": "driving",
+                  "description": "Ulaşım modu (driving, walking, bicycling, transit)"
+                }
+              ]
+            },
+            "description": "Belirli bir konuma yakın etkinlikleri gerçek seyahat mesafeleri ile listeler"
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/events/nearby?latitude=41.0082&longitude=28.9784&radius=10&useDistanceMatrix=true"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"events\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n        \"title\": \"Futbol Turnuvası\",\n        \"description\": \"Arkadaşlarla futbol maçı\",\n        \"sport_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"sport\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n          \"name\": \"Futbol\",\n          \"icon\": \"football.png\"\n        },\n        \"event_date\": \"2023-06-15\",\n        \"start_time\": \"2023-06-15T15:00:00Z\",\n        \"end_time\": \"2023-06-15T17:00:00Z\",\n        \"location_name\": \"Örnek Spor Tesisi\",\n        \"location_latitude\": 41.0342,\n        \"location_longitude\": 28.9831,\n        \"max_participants\": 22,\n        \"current_participants\": 15,\n        \"status\": \"active\",\n        \"distance\": {\n          \"text\": \"3.5 km\",\n          \"value\": 3500\n        },\n        \"duration\": {\n          \"text\": \"12 dakika\",\n          \"value\": 720\n        },\n        \"creator\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440010\",\n          \"username\": \"sportuser\",\n          \"first_name\": \"Spor\",\n          \"last_name\": \"Kullanıcı\",\n          \"profile_picture\": \"http://example.com/profiles/user.jpg\"\n        }\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"title\": \"Basketbol Maçı\",\n        \"description\": \"3x3 basketbol turnuvası\",\n        \"sport_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"sport\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n          \"name\": \"Basketbol\",\n          \"icon\": \"basketball.png\"\n        },\n        \"event_date\": \"2023-06-16\",\n        \"start_time\": \"2023-06-16T18:00:00Z\",\n        \"end_time\": \"2023-06-16T20:00:00Z\",\n        \"location_name\": \"Basketbol Sahası\",\n        \"location_latitude\": 41.0214,\n        \"location_longitude\": 29.0097,\n        \"max_participants\": 12,\n        \"current_participants\": 9,\n        \"status\": \"active\",\n        \"distance\": {\n          \"text\": \"7.3 km\",\n          \"value\": 7300\n        },\n        \"duration\": {\n          \"text\": \"17 dakika\",\n          \"value\": 1020\n        },\n        \"creator\": {\n          \"id\": \"550e8400-e29b-41d4-a716-446655440011\",\n          \"username\": \"basketuser\",\n          \"first_name\": \"Basket\",\n          \"last_name\": \"Kullanıcı\",\n          \"profile_picture\": \"http://example.com/profiles/basketuser.jpg\"\n        }\n      }\n    ],\n    \"totalCount\": 2\n  }\n}"
             }
           ]
         }

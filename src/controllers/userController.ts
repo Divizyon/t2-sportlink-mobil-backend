@@ -16,6 +16,19 @@ const profileUpdateSchema = z.object({
   }).optional(),
 });
 
+// Konum güncelleme için validasyon şeması
+const locationUpdateSchema = z.object({
+  latitude: z.number({
+    required_error: "Enlem (latitude) zorunludur",
+    invalid_type_error: "Enlem sayısal bir değer olmalıdır"
+  }),
+  longitude: z.number({
+    required_error: "Boylam (longitude) zorunludur",
+    invalid_type_error: "Boylam sayısal bir değer olmalıdır"
+  }),
+  locationName: z.string().optional(),
+});
+
 // Spor dalları güncelleme için validasyon şeması
 const sportsUpdateSchema = z.array(
   z.object({
@@ -79,6 +92,55 @@ export const userController = {
       }
       
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Konum bilgisini güncelle
+   */
+  async updateLocation(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      
+      // Veri doğrulama
+      const validationResult = locationUpdateSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        res.status(400).json({
+          success: false,
+          message: 'Doğrulama hatası',
+          errors: validationResult.error.errors,
+          code: 'VALIDATION_ERROR'
+        });
+        return;
+      }
+      
+      // userService.updateProfile fonksiyonunu kullanarak konum bilgisini güncelle
+      const result = await userService.updateProfile(userId, {
+        default_location_latitude: validationResult.data.latitude,
+        default_location_longitude: validationResult.data.longitude,
+      });
+      
+      if (!result.success) {
+        const status = result.code === 'USER_NOT_FOUND' ? 404 : 400;
+        res.status(status).json(result);
+        return;
+      }
+      
+      // Başarılı sonucu özelleştirilmiş bir formatta döndür
+      res.json({
+        success: true,
+        message: 'Konum bilgisi başarıyla güncellendi',
+        data: {
+          defaultLocation: {
+            latitude: validationResult.data.latitude,
+            longitude: validationResult.data.longitude,
+            locationName: validationResult.data.locationName || 'Kullanıcı Konumu'
+          }
+        }
+      });
     } catch (error) {
       next(error);
     }

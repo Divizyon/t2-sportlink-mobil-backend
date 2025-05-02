@@ -23,11 +23,27 @@ const router = Router();
 // Tüm etkinlikleri getir (filtreleme ile)
 router.get('/', getAllEvents);
 
-// Etkinlik detayını getir
-router.get('/:eventId', getEventById);
+// FILTRELEME VE ARAMA ENDPOINTLERI
+// Yakındaki etkinlikleri getir (konum bazlı)
+router.get('/nearby', getNearbyEvents);
+
+// Etkinlik arama (spor türü, tarih, konum vb. parametrelerle)
+router.get('/search', searchEvents);
+
+// Kullanıcıya özel önerilen etkinlikler
+router.get('/recommended', authenticate, getRecommendedEvents);
+
+// Kullanıcının katıldığı etkinlikleri getir
+router.get('/my-events', authenticate, getMyEvents);
+
+// Kullanıcının oluşturduğu etkinlikleri getir
+router.get('/created-events', authenticate, getCreatedEvents);
 
 // Yeni etkinlik oluştur
 router.post('/', authenticate, createEvent);
+
+// Etkinlik detayını getir - Parametrik route'lar sonda olmalı
+router.get('/:eventId', getEventById);
 
 // Etkinlik güncelle (sadece oluşturan)
 router.put('/:eventId', authenticate, updateEvent);
@@ -41,28 +57,10 @@ router.post('/:eventId/join', authenticate, joinEvent);
 // Etkinlikten ayrıl
 router.post('/:eventId/leave', authenticate, leaveEvent);
 
-// Kullanıcının katıldığı etkinlikleri getir
-router.get('/my-events', authenticate, getMyEvents);
-
-// Kullanıcının oluşturduğu etkinlikleri getir
-router.get('/created-events', authenticate, getCreatedEvents);
-
 // Etkinliğin davet kodunu getir (sadece oluşturan)
 router.get('/:eventId/invitation', authenticate, getEventInvitationCode);
 
-// FILTRELEME VE ARAMA ENDPOINTLERI
-
-// Yakındaki etkinlikleri getir (konum bazlı)
-router.get('/nearby', getNearbyEvents);
-
-// Etkinlik arama (spor türü, tarih, konum vb. parametrelerle)
-router.get('/search', searchEvents);
-
-// Kullanıcıya özel önerilen etkinlikler
-router.get('/recommended', authenticate, getRecommendedEvents);
-
 // DEĞERLENDIRME ENDPOINTLERI
-
 // Etkinlik değerlendir
 router.post('/:eventId/rate', authenticate, rateEvent);
 

@@ -266,11 +266,29 @@ export const updateEvent = async (req: Request, res: Response) => {
     }
 
     const data = validationResult.data;
+    
+    // Tarih alanlarını uygun formata dönüştür
+    const updateData = {
+      ...data
+    };
+    
+    // Tarih formatı düzeltmesi - ISO String formatına dönüştür
+    if (updateData.event_date) {
+      updateData.event_date = new Date(updateData.event_date) as unknown as string;
+    }
+    
+    if (updateData.start_time) {
+      updateData.start_time = new Date(updateData.start_time) as unknown as string;
+    }
+    
+    if (updateData.end_time) {
+      updateData.end_time = new Date(updateData.end_time) as unknown as string;
+    }
 
     // Etkinliği güncelle
     const updatedEvent = await EventWithExtensions.update(
       { id: eventId },
-      data
+      updateData
     );
 
     return res.status(200).json({

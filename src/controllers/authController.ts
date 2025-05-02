@@ -18,6 +18,11 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Şifre girmelisiniz'),
 });
 
+// Refresh token için doğrulama şeması
+const refreshTokenSchema = z.object({
+  refresh_token: z.string().min(1, 'Refresh token gereklidir'),
+});
+
 export const authController = {
   /**
    * Kullanıcı kaydı
@@ -144,6 +149,38 @@ export const authController = {
       }
       
       const result = await authService.forgotPassword(email);
+      
+      return res.json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  },
+
+  /**
+   * Access token'ı yenilemek için refresh token kullanır
+   */
+  async refreshToken(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+    try {
+      // Gelen verileri doğrula
+      const validationResult = refreshTokenSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Doğrulama hatası',
+          errors: validationResult.error.errors,
+        });
+      }
+
+      // Doğrulanmış verileri al
+      const refreshData = validationResult.data;
+      
+      // Token yenileme servisini çağır
+      const result = await authService.refreshToken(refreshData);
+      
+      if (!result.success) {
+        return res.status(401).json(result);
+      }
       
       return res.json(result);
     } catch (error: any) {

@@ -38,4 +38,11 @@ router.post('/logout', authController.logout);
  */
 router.post('/forgot-password', authController.forgotPassword);
 
+/**
+ * @route   POST /api/auth/refresh-token
+ * @desc    Access token'ı yenilemek için refresh token kullanır
+ * @access  Public
+ */
+router.post('/refresh-token', authController.refreshToken);
+
 export default router; 

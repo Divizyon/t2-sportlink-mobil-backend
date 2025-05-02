@@ -1,7 +1,8 @@
 import { supabase } from '../config/supabase';
 import prisma from '../config/prisma';
 import dotenv from 'dotenv';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 dotenv.config();
 
@@ -17,6 +18,10 @@ interface RegisterUserData {
 interface LoginData {
   email: string;
   password: string;
+}
+
+interface RefreshTokenData {
+  refresh_token: string;
 }
 
 export const authService = {
@@ -113,7 +118,7 @@ export const authService = {
       await this.cleanupAfterFailedRegistration(userData.email);
       
       // Prisma hatalarını kullanıcı dostu mesajlara dönüştür
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error instanceof PrismaClientKnownRequestError) {
         // P2002 kodu, unique constraint ihlali hatası
         if (error.code === 'P2002') {
           const field = error.meta?.target as string[];
@@ -349,6 +354,69 @@ export const authService = {
         message: 'Şifre sıfırlama işlemi sırasında bir hata oluştu.',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined,
         code: 'PASSWORD_RESET_ERROR'
+      };
+    }
+  },
+
+  /**
+   * Access token'ı yenilemek için refresh token kullanır
+   */
+  async refreshToken(refreshData: RefreshTokenData) {
+    try {
+      // Supabase ile token'ı yenile
+      const { data, error } = await supabase.auth.refreshSession({
+        refresh_token: refreshData.refresh_token
+      });
+
+      if (error) {
+        return {
+          success: false,
+          message: 'Oturum yenileme başarısız. Lütfen tekrar giriş yapın.',
+          code: 'REFRESH_TOKEN_ERROR',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        };
+      }
+
+      if (!data.session || !data.user) {
+        return {
+          success: false,
+          message: 'Oturum bilgileri alınamadı. Lütfen tekrar giriş yapın.',
+          code: 'SESSION_ERROR'
+        };
+      }
+
+      // Kullanıcı bilgilerini al
+      const user = await prisma.user.findUnique({
+        where: { email: data.user.email as string },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'Kullanıcı bulunamadı',
+          code: 'USER_NOT_FOUND'
+        };
+      }
+
+      // Yenilenen session bilgilerini döndür
+      return {
+        success: true,
+        message: 'Oturum başarıyla yenilendi',
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+        },
+        session: data.session
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'Oturum yenileme sırasında bir hata oluştu.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        code: 'REFRESH_ERROR'
       };
     }
   },

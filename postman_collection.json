@@ -119,6 +119,29 @@
             "description": "Şifre sıfırlama bağlantısı gönderir"
           },
           "response": []
+        },
+        {
+          "name": "Token Yenile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsImtpZCI6IjA1ZWRiN2QyLTIzMDQtNGY4Ny04YWQ3LWYyOGFlOWJkMzU5OCIsInR5cCI6IkpXVCJ9...\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "description": "Refresh token kullanarak yeni bir access token alır. Bu endpoint, token süresi dolduğunda kullanıcının oturumunu yenilemek için kullanılır. Frontend, secure store'da sakladığı refresh token'ı göndererek yeni bir access token elde eder."
+          },
+          "response": []
         }
       ]
     },

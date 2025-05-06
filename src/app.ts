@@ -39,7 +39,7 @@ app.use(morgan('dev'));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-  limit: 100, // IP başına istek limiti
+  limit: 1000, // IP başına istek limiti - artırıldı
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 });

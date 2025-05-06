@@ -17,5 +17,6 @@ router.delete('/conversations/:conversationId', messageController.leaveConversat
 router.post('/messages', messageController.sendMessage);
 router.post('/messages/media', messageController.sendMediaMessage); // Medya içeren mesaj gönderme
 router.post('/messages/read', messageController.markMessagesAsRead);
+router.get('/messages/unread-count', messageController.getUnreadMessagesCount); // Okunmamış mesaj sayısını getir
 
 export default router;

@@ -438,5 +438,52 @@ export const messageService = {
     }
 
     return true;
+  },
+
+  /**
+   * Kullanıcının okunmamış mesaj sayısını getirir
+   */
+  async getUnreadMessagesCount(userId: string): Promise<number> {
+    try {
+      // Kullanıcının katılımcı olduğu konuşmaları bul
+      const userConversations = await prisma.conversation_participant.findMany({
+        where: {
+          user_id: userId,
+          left_at: null // Aktif konuşmaları filtrele
+        },
+        select: {
+          conversation_id: true
+        }
+      });
+
+      if (!userConversations.length) {
+        return 0; // Kullanıcının hiç konuşması yoksa
+      }
+
+      const conversationIds = userConversations.map(uc => uc.conversation_id);
+
+      // Okunmamış mesaj sayısını hesapla
+      const unreadMessagesCount = await prisma.message.count({
+        where: {
+          conversation_id: {
+            in: conversationIds
+          },
+          sender_id: {
+            not: userId // Kullanıcının kendisinin gönderdiği mesajları dahil etme
+          },
+          is_read: false, // Okunmamış mesajları filtrele
+          read_by: {
+            none: {
+              user_id: userId // Kullanıcı tarafından okunmamış olanları filtrele
+            }
+          }
+        }
+      });
+
+      return unreadMessagesCount;
+    } catch (error) {
+      console.error('Okunmamış mesaj sayısı hesaplama hatası:', error);
+      throw new Error('Okunmamış mesaj sayısı hesaplanırken bir hata oluştu');
+    }
   }
 };

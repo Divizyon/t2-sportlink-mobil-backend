@@ -343,6 +343,93 @@
               "body": "{\n  \"success\": false,\n  \"message\": \"Geçersiz spor dalı ID'si\",\n  \"code\": \"INVALID_SPORT_ID\"\n}"
             }
           ]
+        },
+        {
+          "name": "İlgilenilen Spor Dalını Sil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/users/profile/sport-interest/:sportId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile", "sport-interest", ":sportId"],
+              "variable": [
+                {
+                  "key": "sportId",
+                  "value": "550e8400-e29b-41d4-a716-446655440000",
+                  "description": "Silinecek spor dalının ID'si"
+                }
+              ]
+            },
+            "description": "Kullanıcının ilgi alanlarından belirtilen spor dalını siler."
+          },
+          "response": [
+            {
+              "name": "Başarılı Yanıt",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile/sport-interest/:sportId",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile", "sport-interest", ":sportId"],
+                  "variable": [
+                    {
+                      "key": "sportId",
+                      "value": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Spor dalı başarıyla silindi\",\n  \"data\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"name\": \"Basketbol\",\n      \"icon\": \"basketball.png\",\n      \"description\": \"Basketbol sporu\",\n      \"skillLevel\": \"intermediate\"\n    },\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n      \"name\": \"Yüzme\",\n      \"icon\": \"swimming.png\",\n      \"description\": \"Yüzme sporu\",\n      \"skillLevel\": \"advanced\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Spor Dalı Bulunamadı Hatası",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/api/users/profile/sport-interest/:sportId",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "users", "profile", "sport-interest", ":sportId"],
+                  "variable": [
+                    {
+                      "key": "sportId",
+                      "value": "550e8400-e29b-41d4-a716-446655440999"
+                    }
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Bu spor dalı kullanıcının ilgi alanlarında bulunmuyor\",\n  \"code\": \"SPORT_NOT_FOUND\"\n}"
+            }
+          ]
         }
       ]
     },

@@ -48,6 +48,9 @@ router.post('/profile/sport-interests', authenticate, isUser, userController.sel
 // İlgilenilen spor dallarına yeni bir tane ekle
 router.post('/profile/sport-interest', authenticate, isUser, userController.addSportInterest);
 
+// İlgilenilen spor dalını sil
+router.delete('/profile/sport-interest/:sportId', authenticate, isUser, userController.removeSportInterest);
+
 // Başka bir kullanıcının profilini görüntüle
 router.get('/:userId', authenticate, isUser, userController.getUserProfile);
 

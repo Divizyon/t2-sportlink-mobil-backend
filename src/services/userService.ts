@@ -276,7 +276,7 @@ export const userService = {
         message: data.sportInterest ? 'Profil bilgileri ve spor dalı başarıyla güncellendi' : 'Profil başarıyla güncellendi',
         data: {
           ...updatedUser,
-          sports: data.sportInterest ? sportResult?.data?.sports : undefined
+          sports: data.sportInterest ? sportResult?.data : undefined
         }
       };
     } catch (error: any) {
@@ -692,40 +692,24 @@ export const userService = {
 
   /**
    * Kullanıcının ilgi alanına yeni bir spor dalı ekler
-   * Mevcut ilgi alanları korunur
    */
   async addSportInterest(userId: string, sportData: SportUpdateData) {
     try {
-      // Kullanıcının varlığını kontrol et
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        return {
-          success: false,
-          message: 'Kullanıcı bulunamadı',
-          code: 'USER_NOT_FOUND'
-        };
-      }
-
-      // Spor dalı ID'sinin geçerliliğini kontrol et
+      // Spor dalının var olup olmadığını kontrol et
       const sportExists = await prisma.sport.findUnique({
-        where: {
-          id: sportData.sportId
-        }
+        where: { id: sportData.sportId }
       });
 
       if (!sportExists) {
         return {
           success: false,
-          message: 'Geçersiz spor dalı ID\'si',
-          code: 'INVALID_SPORT_ID'
+          message: 'Belirtilen spor dalı bulunamadı',
+          code: 'SPORT_NOT_FOUND'
         };
       }
 
-      // Kullanıcının bu spor dalıyla zaten ilgilenip ilgilenmediğini kontrol et
-      const existingUserSport = await prisma.user_sport.findUnique({
+      // Kullanıcının bu spor dalına zaten sahip olup olmadığını kontrol et
+      const existingSport = await prisma.user_sport.findUnique({
         where: {
           user_id_sport_id: {
             user_id: userId,
@@ -734,8 +718,8 @@ export const userService = {
         }
       });
 
-      if (existingUserSport) {
-        // Spor dalı zaten eklenmiş, sadece yetenek seviyesini güncelle
+      if (existingSport) {
+        // Spor dalı zaten eklenmiş, sadece beceri seviyesini güncelle
         await prisma.user_sport.update({
           where: {
             user_id_sport_id: {
@@ -747,20 +731,26 @@ export const userService = {
             skill_level: sportData.skillLevel
           }
         });
-      } else {
-        // Yeni spor dalını ekle
-        await prisma.user_sport.create({
-          data: {
-            user: {
-              connect: { id: userId }
-            },
-            sport: {
-              connect: { id: sportData.sportId }
-            },
-            skill_level: sportData.skillLevel
-          }
-        });
+
+        return {
+          success: true,
+          message: 'Spor dalı beceri seviyesi güncellendi',
+          code: 'SPORT_UPDATED'
+        };
       }
+
+      // Spor dalını ekle
+      await prisma.user_sport.create({
+        data: {
+          user: {
+            connect: { id: userId }
+          },
+          sport: {
+            connect: { id: sportData.sportId }
+          },
+          skill_level: sportData.skillLevel
+        }
+      });
 
       // Güncel kullanıcı spor dallarını getir
       const updatedUserSports = await prisma.user_sport.findMany({
@@ -770,21 +760,91 @@ export const userService = {
 
       return {
         success: true,
-        message: existingUserSport ? 'Spor dalı yetenek seviyesi güncellendi' : 'Spor dalı ilgi alanlarına eklendi',
-        data: {
-          sports: updatedUserSports.map(us => ({
-            id: us.sport.id,
-            name: us.sport.name,
-            icon: us.sport.icon,
-            skillLevel: us.skill_level
-          }))
-        }
+        message: 'Spor dalı başarıyla eklendi',
+        data: updatedUserSports.map(us => ({
+          id: us.sport.id,
+          name: us.sport.name,
+          icon: us.sport.icon,
+          description: us.sport.description,
+          skillLevel: us.skill_level
+        }))
       };
     } catch (error: any) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // P2003 kodu, foreign key constraint hatası
+        if (error.code === 'P2003') {
+          return {
+            success: false,
+            message: 'Geçersiz spor dalı ID\'si',
+            code: 'INVALID_SPORT_ID'
+          };
+        }
+      }
+      
       return {
         success: false,
         message: 'Spor dalı eklenirken bir hata oluştu',
         code: 'ADD_SPORT_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  },
+
+  /**
+   * Kullanıcının ilgi alanından bir spor dalını siler
+   */
+  async removeSportInterest(userId: string, sportId: string) {
+    try {
+      // Kullanıcının bu spor dalına sahip olup olmadığını kontrol et
+      const existingSport = await prisma.user_sport.findUnique({
+        where: {
+          user_id_sport_id: {
+            user_id: userId,
+            sport_id: sportId
+          }
+        }
+      });
+
+      if (!existingSport) {
+        return {
+          success: false,
+          message: 'Bu spor dalı kullanıcının ilgi alanlarında bulunmuyor',
+          code: 'SPORT_NOT_FOUND'
+        };
+      }
+
+      // Spor dalını sil
+      await prisma.user_sport.delete({
+        where: {
+          user_id_sport_id: {
+            user_id: userId,
+            sport_id: sportId
+          }
+        }
+      });
+
+      // Güncel kullanıcı spor dallarını getir
+      const updatedUserSports = await prisma.user_sport.findMany({
+        where: { user_id: userId },
+        include: { sport: true }
+      });
+
+      return {
+        success: true,
+        message: 'Spor dalı başarıyla silindi',
+        data: updatedUserSports.map(us => ({
+          id: us.sport.id,
+          name: us.sport.name,
+          icon: us.sport.icon,
+          description: us.sport.description,
+          skillLevel: us.skill_level
+        }))
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'Spor dalı silinirken bir hata oluştu',
+        code: 'REMOVE_SPORT_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }

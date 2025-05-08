@@ -295,4 +295,39 @@ export const userController = {
       next(error);
     }
   },
+
+  /**
+   * Kullanıcının ilgi alanından bir spor dalını siler
+   */
+  async removeSportInterest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      
+      // Veri doğrulama
+      const validationResult = z.object({
+        sportId: z.string().uuid('Geçerli bir UUID formatı olmalıdır')
+      }).safeParse(req.params);
+      
+      if (!validationResult.success) {
+        res.status(400).json({
+          success: false,
+          message: 'Doğrulama hatası',
+          errors: validationResult.error.errors,
+          code: 'VALIDATION_ERROR'
+        });
+        return;
+      }
+      
+      const result = await userService.removeSportInterest(userId, validationResult.data.sportId);
+      
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 }; 

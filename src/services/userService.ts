@@ -67,13 +67,12 @@ export const userService = {
       const participatedEvents = await prisma.event_participant.findMany({
         where: { 
           user_id: userId,
-          // Artık tüm etkinlikleri getireceğimiz için status ve tarih filtrelerini kaldırıyoruz
-          /* event: {
-            status: "active", // Sadece aktif etkinlikleri getir
-            event_date: {
-              gte: new Date() // Bugün ve sonrası etkinlikler
+          // Aktif ve taslak etkinlikleri getir
+          event: {
+            status: {
+              in: ['active', 'draft']
             }
-          } */
+          }
         },
         include: {
           event: {
@@ -98,10 +97,10 @@ export const userService = {
         },
         orderBy: {
           event: {
-            event_date: 'desc' // En son katılınan etkinlikler önce gösterilsin
+            event_date: 'asc' // Yakın zamandaki etkinlikler önce gösterilsin
           }
         },
-        take: 10 // Son 10 etkinliği getir
+        take: 20 // Etkinlik sayısını artırıyoruz
       });
 
       // İki farklı kategoride etkinlikleri ayıralım: Gelecek ve Geçmiş
@@ -132,16 +131,103 @@ export const userService = {
           },
           creator: event.creator,
           participant_count: event._count.participants,
-          max_participants: event.max_participants
+          max_participants: event.max_participants,
+          isCreator: event.creator.id === userId, // Kullanıcının oluşturduğu bir etkinlik mi?
+          isParticipant: true // Kullanıcı katılımcı olarak eklenmiş
         };
 
-        // Tarih kontrolü yaparak ilgili listeye ekle
-        if (new Date(event.event_date) >= now) {
+        // Tarih kontrolü yaparak ilgili listeye ekle - Düzeltilmiş versiyon
+        const eventDate = new Date(event.event_date);
+        // Sadece yıl, ay ve gün kısmıyla karşılaştırma yapalım
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if (eventDateOnly >= nowDateOnly) {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
         }
       });
+      
+      // Şimdi de kullanıcının oluşturduğu ama henüz katılımcı olmadığı etkinlikleri alalım
+      const createdButNotParticipatedEvents = await prisma.event.findMany({
+        where: {
+          creator_id: userId,
+          status: {
+            in: ['active', 'draft']
+          },
+          // Katıldığı etkinliklerde olmayanları getirelim
+          NOT: {
+            participants: {
+              some: {
+                user_id: userId
+              }
+            }
+          }
+        },
+        include: {
+          sport: true,
+          creator: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          },
+          _count: {
+            select: {
+              participants: true
+            }
+          }
+        },
+        orderBy: {
+          event_date: 'asc'
+        }
+      });
+      
+      // Oluşturduğu ama katılmadığı etkinlikleri işleyelim
+      createdButNotParticipatedEvents.forEach(event => {
+        const formattedEvent = {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          event_date: event.event_date,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          location_name: event.location_name,
+          location_latitude: event.location_latitude,
+          location_longitude: event.location_longitude,
+          is_private: event.is_private,
+          status: event.status,
+          sport: {
+            id: event.sport.id,
+            name: event.sport.name,
+            icon: event.sport.icon
+          },
+          creator: event.creator,
+          participant_count: event._count.participants,
+          max_participants: event.max_participants,
+          isCreator: true, // Kullanıcının oluşturduğu bir etkinlik
+          isParticipant: false // Kullanıcı katılımcı olarak eklenmemiş
+        };
+        
+        // Tarih kontrolü yaparak ilgili listeye ekle
+        const eventDate = new Date(event.event_date);
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if (eventDateOnly >= nowDateOnly) {
+          upcomingEvents.push(formattedEvent);
+        } else {
+          pastEvents.push(formattedEvent);
+        }
+      });
+      
+      // Tarihe göre sırala
+      upcomingEvents.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+      pastEvents.sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
 
       // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
       const userRatings = await prisma.user_rating.findMany({
@@ -467,13 +553,12 @@ export const userService = {
       const participatedEvents = await prisma.event_participant.findMany({
         where: { 
           user_id: userId,
-          // Artık tüm etkinlikleri getireceğimiz için status ve tarih filtrelerini kaldırıyoruz
-          /* event: {
-            status: "active", // Sadece aktif etkinlikleri getir
-            event_date: {
-              gte: new Date() // Bugün ve sonrası etkinlikler
+          // Aktif ve taslak etkinlikleri getir
+          event: {
+            status: {
+              in: ['active', 'draft']
             }
-          } */
+          }
         },
         include: {
           event: {
@@ -498,10 +583,10 @@ export const userService = {
         },
         orderBy: {
           event: {
-            event_date: 'desc' // En son katılınan etkinlikler önce gösterilsin
+            event_date: 'asc' // Yakın zamandaki etkinlikler önce gösterilsin
           }
         },
-        take: 10 // Son 10 etkinliği getir
+        take: 20 // Etkinlik sayısını artırıyoruz
       });
 
       // İki farklı kategoride etkinlikleri ayıralım: Gelecek ve Geçmiş
@@ -532,16 +617,103 @@ export const userService = {
           },
           creator: event.creator,
           participant_count: event._count.participants,
-          max_participants: event.max_participants
+          max_participants: event.max_participants,
+          isCreator: event.creator.id === userId, // Kullanıcının oluşturduğu bir etkinlik mi?
+          isParticipant: true // Kullanıcı katılımcı olarak eklenmiş
         };
 
-        // Tarih kontrolü yaparak ilgili listeye ekle
-        if (new Date(event.event_date) >= now) {
+        // Tarih kontrolü yaparak ilgili listeye ekle - Düzeltilmiş versiyon
+        const eventDate = new Date(event.event_date);
+        // Sadece yıl, ay ve gün kısmıyla karşılaştırma yapalım
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if (eventDateOnly >= nowDateOnly) {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
         }
       });
+      
+      // Şimdi de kullanıcının oluşturduğu ama henüz katılımcı olmadığı etkinlikleri alalım
+      const createdButNotParticipatedEvents = await prisma.event.findMany({
+        where: {
+          creator_id: userId,
+          status: {
+            in: ['active', 'draft']
+          },
+          // Katıldığı etkinliklerde olmayanları getirelim
+          NOT: {
+            participants: {
+              some: {
+                user_id: userId
+              }
+            }
+          }
+        },
+        include: {
+          sport: true,
+          creator: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          },
+          _count: {
+            select: {
+              participants: true
+            }
+          }
+        },
+        orderBy: {
+          event_date: 'asc'
+        }
+      });
+      
+      // Oluşturduğu ama katılmadığı etkinlikleri işleyelim
+      createdButNotParticipatedEvents.forEach(event => {
+        const formattedEvent = {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          event_date: event.event_date,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          location_name: event.location_name,
+          location_latitude: event.location_latitude,
+          location_longitude: event.location_longitude,
+          is_private: event.is_private,
+          status: event.status,
+          sport: {
+            id: event.sport.id,
+            name: event.sport.name,
+            icon: event.sport.icon
+          },
+          creator: event.creator,
+          participant_count: event._count.participants,
+          max_participants: event.max_participants,
+          isCreator: true, // Kullanıcının oluşturduğu bir etkinlik
+          isParticipant: false // Kullanıcı katılımcı olarak eklenmemiş
+        };
+        
+        // Tarih kontrolü yaparak ilgili listeye ekle
+        const eventDate = new Date(event.event_date);
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        if (eventDateOnly >= nowDateOnly) {
+          upcomingEvents.push(formattedEvent);
+        } else {
+          pastEvents.push(formattedEvent);
+        }
+      });
+      
+      // Tarihe göre sırala
+      upcomingEvents.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+      pastEvents.sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
 
       // Kullanıcının aldığı derecelendirmeleri al (ortalama puan için)
       const userRatings = await prisma.user_rating.findMany({

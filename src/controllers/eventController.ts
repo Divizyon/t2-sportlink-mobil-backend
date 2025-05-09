@@ -3,10 +3,12 @@ import { z } from 'zod';
 import { Event } from '../models/Event';
 import prisma from '../config/prisma';
 import { Prisma } from '@prisma/client';
+import { Friend } from '../models/Friend';
 
 // Gerekli tip tanımlamaları
 type EventWhereInput = Prisma.eventWhereInput;
 type EventOrderByInput = Prisma.eventOrderByWithRelationInput;
+type EventIncludeInput = Prisma.eventInclude;
 
 // Event sınıfına eklenen statik metotlar için tip genişletmesi
 interface EventClass {
@@ -24,6 +26,13 @@ interface EventClass {
   addRating(eventId: string, userId: string, rating: number, review: string): Promise<any>;
   updateRating(id: string, rating: number, review: string): Promise<any>;
   getAverageRating(eventId: string): Promise<{ average: number; count: number }>;
+  findMany(options: {
+    skip?: number;
+    take?: number;
+    where?: EventWhereInput;
+    orderBy?: EventOrderByInput;
+    include?: EventIncludeInput;
+  }): Promise<any[]>;
 }
 
 // Event sınıfını genişletmek için tipini EventClass ile birleştir
@@ -78,11 +87,29 @@ const rateEventSchema = z.object({
   review: z.string().min(3, 'Yorum en az 3 karakter olmalıdır'),
 });
 
+// Öneri nedeni türleri
+type RecommendationReason = {
+  type: 'sport_preference' | 'friend_participation' | 'both';
+  sport_id?: string;
+  sport_name?: string;
+  skill_level?: string;
+  friend_count?: number;
+  friends?: Array<{
+    id: string;
+    username: string;
+    first_name: string | null;
+    last_name: string | null;
+    profile_picture: string | null;
+  }>;
+  sport_preference?: RecommendationReason;
+  friend_participation?: RecommendationReason;
+};
+
 // Tüm etkinlikleri getir
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 200; // Varsayılan limit 10'dan 200'e çıkarıldı
     const skip = (page - 1) * limit;
 
     // Spor dalına göre filtreleme
@@ -95,7 +122,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
     // Status filtreleme (varsayılan olarak aktif etkinlikler)
     const status = req.query.status as string || 'active';
     if (status !== 'all') {
-      where = { ...where, status };
+      where = { ...where };
     }
 
     const events = await EventWithExtensions.findMany({
@@ -349,7 +376,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
   }
 };
 
-// Etkinliğe katıl
+// Etkinlik e katıl
 export const joinEvent = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
@@ -545,6 +572,7 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
     const longitude = parseFloat(req.query.longitude as string);
     const radius = parseFloat(req.query.radius as string) || 10; // km cinsinden varsayılan 10km
     const useDistanceMatrix = req.query.useDistanceMatrix === 'true'; // Google Maps Distance Matrix API kullanımı için flag
+    const limit = parseInt(req.query.limit as string) || 200; // Varsayılan limit 200 olarak ayarlandı
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({
@@ -616,6 +644,11 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
       }
     }
 
+    // Limit uygula
+    if (events.length > limit) {
+      events = events.slice(0, limit);
+    }
+
     return res.status(200).json({
       success: true,
       data: {
@@ -627,7 +660,8 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
             latitude,
             longitude
           },
-          useDistanceMatrix
+          useDistanceMatrix,
+          limit
         }
       }
     });
@@ -645,7 +679,7 @@ export const getNearbyEvents = async (req: Request, res: Response) => {
 export const searchEvents = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 200; // Varsayılan limit 200 olarak ayarlandı
     const skip = (page - 1) * limit;
 
     const keyword = req.query.keyword as string;
@@ -764,16 +798,26 @@ export const getRecommendedEvents = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 200; // Varsayılan limit 200 olarak ayarlandı
     const skip = (page - 1) * limit;
+    const includeOnlyFriends = req.query.onlyFriends === 'true';
+    const sportCategory = req.query.sportCategory as string; // Belirli bir spor kategorisi için filtreleme
+    const minEventCount = parseInt(req.query.minEventCount as string) || 5; // Minimum etkinlik sayısı
+    const includeBoth = req.query.includeBoth === 'true' || true; // Hem arkadaş hem spor tercihlerini içer (varsayılan true)
+
 
     // Kullanıcının spor tercihleri
     const userSports = await EventWithExtensions.getUserSportPreferences(userId);
     
-    if (!userSports.length) {
+    // Kullanıcının arkadaşlarını getir
+    const friends = await Friend.getFriends(userId);
+    const friendIds = friends.map(friend => friend.id);
+
+    // Eğer kullanıcının spor tercihi ve arkadaşı yoksa uyarı dön
+    if (!userSports.length && !friendIds.length) {
       return res.status(200).json({
         success: true,
-        message: 'Öneri almak için spor tercihlerinizi ekleyin',
+        message: 'Öneri almak için spor tercihlerinizi ekleyin veya arkadaş edinin',
         data: { 
           events: [],
           pagination: {
@@ -785,13 +829,309 @@ export const getRecommendedEvents = async (req: Request, res: Response) => {
         }
       });
     }
-
     // Kullanıcının tercih ettiği sporlar için etkinlikleri getir
     const sportIds = userSports.map(sport => sport.sport_id);
+
+    // Her iki tür etkinliği de getir (paralel olarak)
+    let sportBasedEvents: any[] = [];
+    let friendBasedEvents: any[] = [];
+
+    // Spor tercihlerine göre etkinlikler - sadece arkadaş etkinlikleri istenmediyse
+    if (sportIds.length > 0 && !includeOnlyFriends) {
+      try {
+        // Spor kategorisi filtrelemesi yapılacaksa
+        const filteredSportIds = sportCategory 
+          ? sportIds.filter(id => id === sportCategory)
+          : sportIds;
+        
+        if (filteredSportIds.length > 0) {
+          console.log(`Filtrelenmiş spor ID'leri: ${filteredSportIds.join(', ')}`);
+          
+          // Her bir spor tercihi için ayrı sorgu yap ve sonuçları birleştir
+          const sportEventPromises = filteredSportIds.map(async (sportId) => {
+            const sportPreferenceWhere: EventWhereInput = {
+              sport_id: sportId,
+              status: 'active',
+              event_date: { gte: new Date() },
+              creator_id: { not: userId }, // Kullanıcının oluşturduğu etkinlikleri dışla
+              participants: {
+                none: {
+                  user_id: userId // Kullanıcının katıldığı etkinlikleri dışla
+                }
+              }
+            };
+        
+            return EventWithExtensions.findMany({
+              where: sportPreferenceWhere,
+              orderBy: { event_date: 'asc' },
+              include: {
+                sport: true,
+                creator: {
+                  select: {
+                    id: true,
+                    username: true,
+                    first_name: true,
+                    last_name: true,
+                    profile_picture: true
+                  }
+                },
+                _count: {
+                  select: {
+                    participants: true
+                  }
+                }
+              }
+            });
+          });
+          
+          // Tüm sorguları paralel olarak çalıştır
+          const sportEventsArrays = await Promise.all(sportEventPromises);
+          
+          // Sonuçları birleştir ve tekrar eden etkinlikleri çıkar
+          const combinedSportEvents = sportEventsArrays.flat();
+          
+          // Tekrar eden etkinlikleri çıkar (ID bazlı unique)
+          const uniqueEventIds = new Set();
+          sportBasedEvents = combinedSportEvents.filter(event => {
+            if (uniqueEventIds.has(event.id)) {
+              return false;
+            }
+            uniqueEventIds.add(event.id);
+            return true;
+          });
+          
+        } else {
+          console.log('Filtreye uygun spor tercihi bulunamadı');
+        }
+      } catch (error) {
+        console.error('Spor bazlı etkinlikler getirilirken hata:', error);
+      }
+    }
+
+    // Arkadaş katılımlarına göre etkinlikler
+    if (friendIds.length > 0) {
+      try {
+        console.log(`Arkadaş ID'leri:`, friendIds);
+        
+        // Spor kategorisi filtrelemesi yapılacaksa
+        const friendEventWhere: any = {
+          status: 'active',
+          event_date: { gte: new Date() },
+          creator_id: { not: userId }, // Kullanıcının oluşturduğu etkinlikleri dışla
+          participants: {
+            some: {
+              user_id: {
+                in: friendIds
+              }
+            },
+            none: {
+              user_id: userId // Kullanıcının katıldığı etkinlikleri dışla
+            }
+          }
+        };
+        
+        // Eğer spor kategorisi filtresi varsa, bunu ekle
+        if (sportCategory) {
+          friendEventWhere.sport_id = sportCategory;
+        }
+        
+        // Doğrudan arkadaşların katıldığı etkinlikleri al
+        const friendEvents = await prisma.event.findMany({
+          where: friendEventWhere,
+          orderBy: { event_date: 'asc' },
+          include: {
+            sport: true,
+            creator: {
+              select: {
+                id: true,
+                username: true,
+                first_name: true,
+                last_name: true,
+                profile_picture: true
+              }
+            },
+            participants: {
+              where: {
+                user_id: {
+                  in: friendIds
+                }
+              },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    first_name: true,
+                    last_name: true,
+                    profile_picture: true
+                  }
+                }
+              }
+            },
+            _count: {
+              select: {
+                participants: true
+              }
+            }
+          }
+        });
+        
+        
+        // Açık olarak tip belirtiyoruz
+        let processedFriendEvents: Array<any> = [];
+        
+        // Eğer arkadaş etkinlikleri varsa işle
+        if (friendEvents.length > 0) {
+          // Her etkinlik için arkadaş bilgileriyle zenginleştir
+          processedFriendEvents = friendEvents.map(event => {
+            // Katılan arkadaşların formatını düzenle
+            const participantFriends = event.participants.map(p => ({
+              id: p.user.id,
+              username: p.user.username,
+              first_name: p.user.first_name,
+              last_name: p.user.last_name,
+              profile_picture: p.user.profile_picture
+            }));
+            
+            console.log(`Etkinlik "${event.title}" için katılan arkadaşlar:`, 
+              participantFriends.map(f => `${f.first_name || ''} ${f.last_name || ''} (${f.username})`).join(", "));
+            
+            // Etkinlikten participants alanını çıkar (fazlalık olmaması için)
+            const { participants, ...eventWithoutParticipants } = event;
+            
+            // Etkinlik ve arkadaş bilgilerini döndür
+            return {
+              ...eventWithoutParticipants,
+              recommendation_reason: {
+                type: 'friend_participation',
+                friend_count: participantFriends.length,
+                friends: participantFriends.slice(0, 3) // En fazla 3 arkadaş göster
+              } as RecommendationReason
+            };
+          });
+        } 
+        
+        friendBasedEvents = processedFriendEvents;
+        
+      } catch (error) {
+        console.error('Arkadaş etkinlikleri getirilirken hata:', error);
+      }
+    }
+
+    // Her etkinliğe neden önerildiğine dair bilgi ekle
+    const processedSportEvents = sportBasedEvents.map(event => {
+      // Kullanıcının tercih ettiği spor dalını bul
+      const userSport = userSports.find(s => s.sport_id === event.sport_id);
+      
+      return {
+        ...event,
+        recommendation_reason: {
+          type: 'sport_preference',
+          sport_id: event.sport_id,
+          sport_name: event.sport?.name || event.sport_id,
+          skill_level: userSport?.skill_level || 'intermediate'
+        } as RecommendationReason
+      };
+    });
     
-    // Kullanıcının katıldığı etkinlikleri bulalım
-    const userParticipations = await EventWithExtensions.countUserEvents(userId);
+    // Sadece arkadaş etkinlikleri isteniyorsa, diğerlerini kullanma
+    const allEvents = includeOnlyFriends ? [] : [...processedSportEvents];
     
+    // Arkadaş bazlı etkinlikleri ekle ama aynı etkinliği tekrar ekleme
+    friendBasedEvents.forEach(friendEvent => {
+      if (includeOnlyFriends) {
+        // Sadece arkadaş bazlı etkinlikler isteniyorsa direkt ekle
+        allEvents.push(friendEvent);
+      } else {
+        // Normal modda ise çakışma kontrolü yap
+        const existingEventIndex = allEvents.findIndex(e => e.id === friendEvent.id);
+        
+        if (existingEventIndex !== -1) {
+          // Bu etkinlik hem spor hem arkadaş bazlı, her iki nedeni de ekle
+          allEvents[existingEventIndex] = {
+            ...allEvents[existingEventIndex],
+            recommendation_reason: {
+              type: 'both',
+              sport_preference: allEvents[existingEventIndex].recommendation_reason,
+              friend_participation: friendEvent.recommendation_reason
+            } as RecommendationReason
+          };
+        } else {
+          // Sadece arkadaş bazlı etkinlik, ekle
+          allEvents.push(friendEvent);
+        }
+      }
+    });
+    
+    // Eğer minimum etkinlik sayısına ulaşılamadıysa ve sadece arkadaş etkinlikleri istenmiyorsa, genel etkinlikleri getir
+    if (allEvents.length < minEventCount && !includeOnlyFriends) {
+      
+      // Zaten eklenen etkinliklerin ID'lerini topla
+      const existingEventIds = new Set(allEvents.map(event => event.id));
+      
+      // Yaklaşan etkinlikleri getirmek için sorgu koşullarını hazırla
+      const additionalEventsWhere: any = {
+        status: 'active',
+        event_date: { gte: new Date() },
+        id: { notIn: Array.from(existingEventIds) }, // Zaten eklenmiş etkinlikleri dışla
+        is_private: false, // Özel etkinlikleri dışla
+        participants: {
+          none: {
+            user_id: userId // Kullanıcının katıldığı etkinlikleri dışla
+          }
+        }
+      };
+      
+      // Eğer spor kategorisi filtresi varsa, bunu ekle
+      if (sportCategory) {
+        additionalEventsWhere.sport_id = sportCategory;
+      }
+      
+      // Yaklaşan etkinlikleri getir
+      const upcomingEvents = await prisma.event.findMany({
+        where: additionalEventsWhere,
+        orderBy: [
+          { event_date: 'asc' }
+        ],
+        take: minEventCount - allEvents.length, // Sadece ihtiyaç duyulan kadar getir
+        include: {
+          sport: true,
+          creator: {
+            select: {
+              id: true,
+              username: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true
+            }
+          },
+          _count: {
+            select: {
+              participants: true
+            }
+          }
+        }
+      });
+      
+      
+      // Bulunan etkinlikleri doğru formata dönüştür
+      const processedUpcomingEvents = upcomingEvents.map(event => ({
+        ...event,
+        recommendation_reason: {
+          type: 'sport_preference',
+          sport_id: event.sport_id,
+          sport_name: event.sport?.name || 'Diğer Etkinlik',
+          skill_level: 'beginner'
+        } as RecommendationReason
+      }));
+      
+      // Ek etkinlikleri listeye ekle
+      allEvents.push(...processedUpcomingEvents);
+    }
+    
+    // Kullanıcının konumu varsa, etkinlikleri mesafeye göre sırala
+    let sortedEvents = [...allEvents];
+
     // Konum tercihi kontrolü
     const userProfile = await prisma.user.findUnique({
       where: { id: userId },
@@ -800,38 +1140,9 @@ export const getRecommendedEvents = async (req: Request, res: Response) => {
         default_location_longitude: true
       }
     });
-
-    // Filtreleri hazırla
-    let where: EventWhereInput = {
-      sport_id: { in: sportIds },
-      status: 'active',
-      event_date: { gte: new Date() }
-    };
-
-    // Kullanıcının daha önce katıldığı etkinlikleri dışla
-    if (userParticipations > 0) {
-      where.participants = {
-        none: {
-          user_id: userId
-        }
-      };
-    }
-
-    // Kullanıcının oluşturduğu etkinlikleri dışla
-    where.creator_id = { not: userId };
-
-    // Etkinlikleri getir
-    const events = await EventWithExtensions.findMany({
-      skip,
-      take: limit,
-      where,
-      orderBy: { event_date: 'asc' }
-    });
-
-    // Kullanıcının konumu varsa, etkinlikleri mesafeye göre sırala
-    let sortedEvents = [...events];
+    
     if (userProfile?.default_location_latitude && userProfile?.default_location_longitude) {
-      sortedEvents = events.map(event => {
+      sortedEvents = allEvents.map(event => {
         const distance = calculateDistance(
           userProfile.default_location_latitude!,
           userProfile.default_location_longitude!,
@@ -840,24 +1151,32 @@ export const getRecommendedEvents = async (req: Request, res: Response) => {
         );
         return { ...event, distance };
       }).sort((a, b) => (a.distance as number) - (b.distance as number));
+    } else {
+      // Konumu yoksa tarihe göre sırala
+      sortedEvents.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
     }
-
-    const totalEvents = await EventWithExtensions.count(where);
-    const totalPages = Math.ceil(totalEvents / limit);
-
+    
+    console.log(`Toplam ${sortedEvents.length} etkinlik öneriliyor.`);
+    
+    // Sayfalama için etkinlikleri böl
+    const paginatedEvents = sortedEvents.slice(skip, skip + limit);
+    
     return res.status(200).json({
       success: true,
       data: {
-        events: sortedEvents,
+        events: paginatedEvents,
         pagination: {
           page,
           limit,
-          total: totalEvents,
-          totalPages
+          total: sortedEvents.length,
+          totalPages: Math.ceil(sortedEvents.length / limit)
         },
         preferences: {
-          sports: userSports.map(s => s.sport_id),
-          hasLocationPreference: !!(userProfile?.default_location_latitude && userProfile?.default_location_longitude)
+          sports: sportIds,
+          hasLocationPreference: !!(userProfile?.default_location_latitude && userProfile?.default_location_longitude),
+          hasFriends: friendIds.length > 0,
+          onlyFriends: includeOnlyFriends,
+          sportCategory: sportCategory || null
         }
       }
     });

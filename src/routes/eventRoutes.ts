@@ -39,6 +39,26 @@ router.get('/my-events', authenticate, getMyEvents);
 // Kullanıcının oluşturduğu etkinlikleri getir
 router.get('/created-events', authenticate, getCreatedEvents);
 
+// Bitiş tarihi geçmiş etkinlikleri güncelle
+router.post('/update-expired', authenticate, async (req, res) => {
+  try {
+    const { userService } = require('../services/userService');
+    const result = await userService.updateExpiredEvents();
+    
+    return res.status(result.success ? 200 : 500).json({
+      ...result,
+      triggered_by: req.user.username,
+      triggered_at: new Date().toISOString()
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: 'Etkinlikleri güncellerken bir hata oluştu',
+      error: error.message
+    });
+  }
+});
+
 // Yeni etkinlik oluştur
 router.post('/', authenticate, createEvent);
 

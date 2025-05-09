@@ -67,10 +67,10 @@ export const userService = {
       const participatedEvents = await prisma.event_participant.findMany({
         where: { 
           user_id: userId,
-          // Aktif ve taslak etkinlikleri getir
+          // Tüm durumları getirelim, sonra filtreleme yapacağız
           event: {
             status: {
-              in: ['active', 'draft']
+              in: ['active', 'draft', 'completed'] // 'passive' durumunu çıkardık, çünkü kendimiz belirleyeceğiz
             }
           }
         },
@@ -112,6 +112,22 @@ export const userService = {
 
       participatedEvents.forEach(participation => {
         const { event } = participation;
+        
+        // Etkinliğin bitiş tarihini kontrol edelim
+        const endDateTime = new Date(event.end_time);
+        
+        // Eğer bitiş tarihi geçmişse ve durumu 'active' ise, durumu 'passive' olarak güncelleyelim
+        let currentStatus = event.status;
+        if (endDateTime < now && currentStatus === 'active') {
+          currentStatus = 'passive';
+          
+          // Durumu veritabanında da güncelleyelim (asenkron olarak)
+          prisma.event.update({
+            where: { id: event.id },
+            data: { status: 'passive' }
+          }).catch(err => console.error(`Etkinlik durumu güncellenirken hata: ${err.message}`));
+        }
+        
         const formattedEvent = {
           id: event.id,
           title: event.title,
@@ -123,7 +139,7 @@ export const userService = {
           location_latitude: event.location_latitude,
           location_longitude: event.location_longitude,
           is_private: event.is_private,
-          status: event.status,
+          status: currentStatus, // Güncellenmiş durumu kullan
           sport: {
             id: event.sport.id,
             name: event.sport.name,
@@ -142,7 +158,8 @@ export const userService = {
         const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        if (eventDateOnly >= nowDateOnly) {
+        // Etkinliğin durumunu kontrol edelim
+        if (eventDateOnly >= nowDateOnly && currentStatus !== 'passive') {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
@@ -154,7 +171,7 @@ export const userService = {
         where: {
           creator_id: userId,
           status: {
-            in: ['active', 'draft']
+            in: ['active', 'draft', 'completed'] // 'passive' durumunu çıkardık
           },
           // Katıldığı etkinliklerde olmayanları getirelim
           NOT: {
@@ -189,6 +206,21 @@ export const userService = {
       
       // Oluşturduğu ama katılmadığı etkinlikleri işleyelim
       createdButNotParticipatedEvents.forEach(event => {
+        // Etkinliğin bitiş tarihini kontrol edelim
+        const endDateTime = new Date(event.end_time);
+        
+        // Eğer bitiş tarihi geçmişse ve durumu 'active' ise, durumu 'passive' olarak güncelleyelim
+        let currentStatus = event.status;
+        if (endDateTime < now && currentStatus === 'active') {
+          currentStatus = 'passive';
+          
+          // Durumu veritabanında da güncelleyelim (asenkron olarak)
+          prisma.event.update({
+            where: { id: event.id },
+            data: { status: 'passive' }
+          }).catch(err => console.error(`Etkinlik durumu güncellenirken hata: ${err.message}`));
+        }
+        
         const formattedEvent = {
           id: event.id,
           title: event.title,
@@ -200,7 +232,7 @@ export const userService = {
           location_latitude: event.location_latitude,
           location_longitude: event.location_longitude,
           is_private: event.is_private,
-          status: event.status,
+          status: currentStatus, // Güncellenmiş durumu kullan
           sport: {
             id: event.sport.id,
             name: event.sport.name,
@@ -218,7 +250,8 @@ export const userService = {
         const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        if (eventDateOnly >= nowDateOnly) {
+        // Etkinliğin durumunu kontrol edelim
+        if (eventDateOnly >= nowDateOnly && currentStatus !== 'passive') {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
@@ -553,10 +586,10 @@ export const userService = {
       const participatedEvents = await prisma.event_participant.findMany({
         where: { 
           user_id: userId,
-          // Aktif ve taslak etkinlikleri getir
+          // Tüm durumları getirelim, sonra filtreleme yapacağız
           event: {
             status: {
-              in: ['active', 'draft']
+              in: ['active', 'draft', 'completed'] // 'passive' durumunu çıkardık, çünkü kendimiz belirleyeceğiz
             }
           }
         },
@@ -598,6 +631,22 @@ export const userService = {
 
       participatedEvents.forEach(participation => {
         const { event } = participation;
+        
+        // Etkinliğin bitiş tarihini kontrol edelim
+        const endDateTime = new Date(event.end_time);
+        
+        // Eğer bitiş tarihi geçmişse ve durumu 'active' ise, durumu 'passive' olarak güncelleyelim
+        let currentStatus = event.status;
+        if (endDateTime < now && currentStatus === 'active') {
+          currentStatus = 'passive';
+          
+          // Durumu veritabanında da güncelleyelim (asenkron olarak)
+          prisma.event.update({
+            where: { id: event.id },
+            data: { status: 'passive' }
+          }).catch(err => console.error(`Etkinlik durumu güncellenirken hata: ${err.message}`));
+        }
+        
         const formattedEvent = {
           id: event.id,
           title: event.title,
@@ -609,7 +658,7 @@ export const userService = {
           location_latitude: event.location_latitude,
           location_longitude: event.location_longitude,
           is_private: event.is_private,
-          status: event.status,
+          status: currentStatus, // Güncellenmiş durumu kullan
           sport: {
             id: event.sport.id,
             name: event.sport.name,
@@ -628,7 +677,8 @@ export const userService = {
         const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        if (eventDateOnly >= nowDateOnly) {
+        // Etkinliğin durumunu kontrol edelim
+        if (eventDateOnly >= nowDateOnly && currentStatus !== 'passive') {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
@@ -640,7 +690,7 @@ export const userService = {
         where: {
           creator_id: userId,
           status: {
-            in: ['active', 'draft']
+            in: ['active', 'draft', 'completed'] // 'passive' durumunu çıkardık
           },
           // Katıldığı etkinliklerde olmayanları getirelim
           NOT: {
@@ -675,6 +725,21 @@ export const userService = {
       
       // Oluşturduğu ama katılmadığı etkinlikleri işleyelim
       createdButNotParticipatedEvents.forEach(event => {
+        // Etkinliğin bitiş tarihini kontrol edelim
+        const endDateTime = new Date(event.end_time);
+        
+        // Eğer bitiş tarihi geçmişse ve durumu 'active' ise, durumu 'passive' olarak güncelleyelim
+        let currentStatus = event.status;
+        if (endDateTime < now && currentStatus === 'active') {
+          currentStatus = 'passive';
+          
+          // Durumu veritabanında da güncelleyelim (asenkron olarak)
+          prisma.event.update({
+            where: { id: event.id },
+            data: { status: 'passive' }
+          }).catch(err => console.error(`Etkinlik durumu güncellenirken hata: ${err.message}`));
+        }
+        
         const formattedEvent = {
           id: event.id,
           title: event.title,
@@ -686,7 +751,7 @@ export const userService = {
           location_latitude: event.location_latitude,
           location_longitude: event.location_longitude,
           is_private: event.is_private,
-          status: event.status,
+          status: currentStatus, // Güncellenmiş durumu kullan
           sport: {
             id: event.sport.id,
             name: event.sport.name,
@@ -704,7 +769,8 @@ export const userService = {
         const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        if (eventDateOnly >= nowDateOnly) {
+        // Etkinliğin durumunu kontrol edelim
+        if (eventDateOnly >= nowDateOnly && currentStatus !== 'passive') {
           upcomingEvents.push(formattedEvent);
         } else {
           pastEvents.push(formattedEvent);
@@ -958,6 +1024,58 @@ export const userService = {
         message: 'Spor dalı eklenirken bir hata oluştu',
         code: 'ADD_SPORT_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  },
+
+  /**
+   * Bitiş tarihi geçmiş etkinlikleri passive durumuna günceller
+   */
+  async updateExpiredEvents() {
+    try {
+      const now = new Date();
+      
+      // Bitiş zamanı geçmiş ve hala 'active' durumunda olan etkinlikleri bul
+      const expiredEvents = await prisma.event.findMany({
+        where: {
+          status: 'active',
+          end_time: {
+            lt: now // end_time < now
+          }
+        },
+        select: {
+          id: true,
+          title: true
+        }
+      });
+      
+      if (expiredEvents.length === 0) {
+        return {
+          success: true,
+          count: 0
+        };
+      }
+      
+      // Tüm süresi dolmuş etkinlikleri toplu olarak güncelle
+      const updateResult = await prisma.event.updateMany({
+        where: {
+          id: {
+            in: expiredEvents.map(event => event.id)
+          }
+        },
+        data: {
+          status: 'passive'
+        }
+      });
+      
+      return {
+        success: true,
+        count: updateResult.count
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message
       };
     }
   }

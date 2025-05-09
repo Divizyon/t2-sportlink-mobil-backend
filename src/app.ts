@@ -18,6 +18,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import deviceRoutes from './routes/deviceRoutes';
 import mapsRoutes from './routes/mapsRoutes';
 import { setupRealtimeTables } from './config/supabase';
+import { userService } from './services/userService';
 
 
 
@@ -96,6 +97,28 @@ const PORT = process.env.PORT || 3000;
 setupRealtimeTables()
   .then(() => console.log('Supabase realtime yapılandırması başarıyla tamamlandı'))
   .catch((err) => console.error('Supabase realtime yapılandırması başarısız:', err));
+
+// Zamanlanmış görevler
+// Süresi geçmiş etkinlikleri otomatik güncelleme görevi
+const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 saat (milisaniye cinsinden)
+setInterval(async () => {
+  try {
+    await userService.updateExpiredEvents();
+  } catch (error) {
+    // Hata durumunda sadece hata mesajını logla
+    console.error('Etkinlik güncelleme görevi hatası:', error);
+  }
+}, UPDATE_INTERVAL);
+
+// Uygulama başlatıldığında ilk kez etkinlikleri güncelle
+(async () => {
+  try {
+    await userService.updateExpiredEvents();
+  } catch (error) {
+    // Hata durumunda sadece hata mesajını logla
+    console.error('İlk etkinlik güncellemesi hatası:', error);
+  }
+})();
 
 app.listen(PORT, () => {
   console.log(`Server http://localhost:${PORT} adresinde çalışıyor`);

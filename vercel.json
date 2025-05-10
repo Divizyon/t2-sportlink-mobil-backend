@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "src/app.ts",
       "use": "@vercel/node",
       "config": {
         "includeFiles": ["prisma/**/*"]
@@ -12,11 +12,10 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/app.js"
+      "dest": "src/app.ts"
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "outputDirectory": "dist"
+  }
 }

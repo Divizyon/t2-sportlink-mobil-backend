@@ -6,12 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.messageController = void 0;
 const messageService_1 = require("../services/messageService");
 const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
 const supabase_1 = require("../config/supabase");
-const fs_1 = __importDefault(require("fs"));
-// Multer yapılandırması - geçici dosya depolama
+// Multer yapılandırması - bellek depolama kullanarak dosya sistemi hatalarını önle
 const upload = (0, multer_1.default)({
-    dest: 'uploads/',
+    storage: multer_1.default.memoryStorage(),
     limits: {
         fileSize: 10 * 1024 * 1024, // 10MB limit
     }
@@ -124,11 +122,10 @@ exports.messageController = {
                             return resolve();
                         }
                         // Dosyayı Supabase Storage'a yükle
-                        const filePath = req.file.path;
                         const fileName = `${Date.now()}_${req.file.originalname}`;
-                        const fileExtension = path_1.default.extname(req.file.originalname);
                         const mediaType = req.file.mimetype.startsWith('image/') ? 'images' : 'files';
-                        const fileBuffer = fs_1.default.readFileSync(filePath);
+                        // Memory storage kullandığımızda dosya içeriği req.file.buffer'da
+                        const fileBuffer = req.file.buffer;
                         const { data, error } = await supabase_1.supabase
                             .storage
                             .from('message-media')
@@ -136,8 +133,8 @@ exports.messageController = {
                             contentType: req.file.mimetype,
                             upsert: false
                         });
-                        // Geçici dosyayı sil
-                        fs_1.default.unlinkSync(filePath);
+                        // Geçici dosya silme işlemi artık gerekli değil
+                        // fs.unlinkSync(filePath);
                         if (error) {
                             res.status(500).json({
                                 success: false,

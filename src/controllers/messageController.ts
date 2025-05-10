@@ -7,9 +7,9 @@ import path from 'path';
 import { supabase } from '../config/supabase';
 import fs from 'fs';
 
-// Multer yapılandırması - geçici dosya depolama
+// Multer yapılandırması - bellek depolama kullanarak dosya sistemi hatalarını önle
 const upload = multer({
-  dest: 'uploads/',
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   }
@@ -144,12 +144,11 @@ export const messageController = {
             }
             
             // Dosyayı Supabase Storage'a yükle
-            const filePath = req.file.path;
             const fileName = `${Date.now()}_${req.file.originalname}`;
-            const fileExtension = path.extname(req.file.originalname);
             const mediaType = req.file.mimetype.startsWith('image/') ? 'images' : 'files';
             
-            const fileBuffer = fs.readFileSync(filePath);
+            // Memory storage kullandığımızda dosya içeriği req.file.buffer'da
+            const fileBuffer = req.file.buffer;
             
             const { data, error } = await supabase
               .storage
@@ -159,8 +158,8 @@ export const messageController = {
                 upsert: false
               });
             
-            // Geçici dosyayı sil
-            fs.unlinkSync(filePath);
+            // Geçici dosya silme işlemi artık gerekli değil
+            // fs.unlinkSync(filePath);
             
             if (error) {
               res.status(500).json({

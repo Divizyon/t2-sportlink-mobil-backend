@@ -23,6 +23,7 @@ __exportStar(require("./news"), exports);
 __exportStar(require("./Notification"), exports);
 __exportStar(require("./Announcement"), exports);
 __exportStar(require("./Message"), exports);
+__exportStar(require("./Friend"), exports);
 // Tüm model tiplerini dışa aktar
 __exportStar(require("@prisma/client"), exports);
 //# sourceMappingURL=index.js.map

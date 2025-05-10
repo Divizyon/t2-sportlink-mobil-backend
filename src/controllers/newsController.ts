@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { News } from '../models/News';
+import { News } from '../models/news';
 import prisma from '../config/prisma';
 import { Prisma } from '@prisma/client';
 

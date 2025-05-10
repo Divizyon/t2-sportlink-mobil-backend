@@ -22,6 +22,7 @@
   - [x] Arkadaşlık istekleri yönetimi UI'ı
   - [x] Arkadaş listesi görüntüleme
 - [ ] Yönetici paneli
+- [x] Backend build ve deploy
 
 ## Tamamlanan Geliştirmeler
 
@@ -65,6 +66,12 @@
 - [x] Dev-client moduna geçiş ile performans iyileştirmesi
 - [x] Proje temizliği ve cache temizliği
 - [ ] Gereksiz kütüphanelerin kaldırılması
+
+### Backend Build ve Deploy
+- [x] TypeScript kaynak kodunun derlenmesi
+- [x] Vercel deploy konfigürasyonu
+- [x] Çevre değişkenlerinin yapılandırılması
+- [x] Build hata düzeltmeleri
 
 ### Gelecek Geliştirmeler
 - [ ] Etkinlik için sohbet platformu

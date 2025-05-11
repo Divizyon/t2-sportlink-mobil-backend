@@ -256,14 +256,16 @@ export class NotificationService {
    */
   static async getUnreadCount(userId: string): Promise<number> {
     try {
-      return await prisma.notification.count({
+      const count = await prisma.notification.count({
         where: {
           user_id: userId,
           is_read: false,
         },
       });
+      
+      return count;
     } catch (error) {
-      logger.error('Error counting unread notifications:', error);
+      logger.error('Error fetching unread notification count:', error);
       throw error;
     }
   }
@@ -294,17 +296,95 @@ export class NotificationService {
   static async markAllAsRead(userId: string): Promise<number> {
     try {
       const result = await prisma.notification.updateMany({
-        where: { 
+        where: {
           user_id: userId,
-          is_read: false
+          is_read: false,
         },
-        data: { is_read: true },
+        data: {
+          is_read: true,
+        },
       });
       
       return result.count;
     } catch (error) {
       logger.error('Error marking all notifications as read:', error);
       throw error;
+    }
+  }
+  
+  /**
+   * Notification tablosuna veri eklendiğinde otomatik push bildirimi gönder
+   * @param notification Veritabanına kaydedilen bildirim 
+   */
+  static async handleNewNotification(notification: any): Promise<void> {
+    try {
+      logger.info(`Trigger: Yeni bildirim eklendi, otomatik push gönderiliyor. ID: ${notification.id}`);
+      
+      // Kullanıcının cihaz tokenlarını al
+      const deviceTokens = await prisma.deviceToken.findMany({
+        where: { user_id: notification.user_id },
+        select: { token: true, platform: true },
+      });
+
+      if (deviceTokens.length === 0) {
+        logger.info(`User ${notification.user_id} has no device tokens for push notification`);
+        return;
+      }
+
+      // Expo Push Notifications API kullanarak bildirim gönder
+      const messages: ExpoPushMessage[] = [];
+
+      for (const { token } of deviceTokens) {
+        // Expo token geçerlilik kontrolü
+        if (!Expo.isExpoPushToken(token)) {
+          logger.warn(`Push token ${token} is not a valid Expo push token`);
+          continue;
+        }
+
+        messages.push({
+          to: token,
+          sound: 'default',
+          title: notification.title,
+          body: notification.body,
+          data: {
+            ...(notification.data || {}),
+            type: notification.type,
+            redirectUrl: notification.redirect_url || '',
+            notificationId: notification.id
+          },
+          priority: 'high',
+        });
+      }
+
+      // Bildirimleri gruplar halinde gönder
+      if (messages.length > 0) {
+        const chunks = expo.chunkPushNotifications(messages);
+        
+        for (const chunk of chunks) {
+          try {
+            const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+            logger.info(`Trigger: Push notification sent to user ${notification.user_id}`);
+            
+            // Geçersiz tokenları kontrol et ve sil
+            ticketChunk.forEach((ticket, index) => {
+              if (ticket.status === 'error') {
+                const token = chunk[index].to as string;
+                logger.error(`Error sending notification to token: ${token}`, ticket.details);
+                
+                if (ticket.details?.error === 'DeviceNotRegistered') {
+                  prisma.deviceToken.deleteMany({
+                    where: { token },
+                  }).catch(error => logger.error('Error deleting invalid token:', error));
+                }
+              }
+            });
+          } catch (error) {
+            logger.error('Error sending push notification chunk:', error);
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Error in notification trigger handler:', error);
     }
   }
 }

@@ -123,6 +123,7 @@
   - [x] Mark as Read (Okundu Olarak İşaretle)
   - [x] Device Token Management (Cihaz Token Yönetimi)
   - [x] Push Notification Service (Push Bildirim Servisi)
+  - [x] Automatic Push Notifications (Otomatik Push Bildirimleri)
 - [x] Friend API (Arkadaşlık)
   - [x] Send Friend Request (Arkadaşlık İsteği Gönder)
   - [x] Accept Friend Request (Arkadaşlık İsteğini Kabul Et)

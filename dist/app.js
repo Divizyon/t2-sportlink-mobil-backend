@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.server = void 0;
 /* eslint-disable prettier/prettier */
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -24,6 +25,8 @@ const deviceRoutes_1 = __importDefault(require("./routes/deviceRoutes"));
 const mapsRoutes_1 = __importDefault(require("./routes/mapsRoutes"));
 const supabase_1 = require("./config/supabase");
 const userService_1 = require("./services/userService");
+const logger_1 = require("./utils/logger");
+const notificationService_1 = require("./services/notificationService");
 // Çevre değişkenlerini yükle
 dotenv_1.default.config();
 // Express uygulamasını oluştur
@@ -64,6 +67,8 @@ app.use('/api/announcements', announcementRoutes_1.default);
 app.use('/api/notifications', notificationRoutes_1.default);
 app.use('/api/devices', deviceRoutes_1.default);
 app.use('/api/maps', mapsRoutes_1.default);
+// Supabase bildirim trigger kurulumu
+setupNotificationTriggers();
 // 404 handler
 app.use((_, res) => {
     res.status(404).json({
@@ -84,10 +89,6 @@ app.use((err, _, res, __) => {
     });
 });
 const PORT = process.env.PORT || 3000;
-// Supabase realtime özelliklerini başlat
-(0, supabase_1.setupRealtimeTables)()
-    .then(() => console.log('Supabase realtime yapılandırması başarıyla tamamlandı'))
-    .catch((err) => console.error('Supabase realtime yapılandırması başarısız:', err));
 // Zamanlanmış görevler
 // Süresi geçmiş etkinlikleri otomatik güncelleme görevi
 const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 saat (milisaniye cinsinden)
@@ -110,8 +111,42 @@ setInterval(async () => {
         console.error('İlk etkinlik güncellemesi hatası:', error);
     }
 })();
-app.listen(PORT, () => {
-    console.log(`Server http://localhost:${PORT} adresinde çalışıyor`);
+exports.server = app.listen(PORT, () => {
+    logger_1.logger.info(`Server running on port ${PORT}`);
+    (0, supabase_1.setupRealtimeTables)()
+        .then(() => logger_1.logger.info('Supabase Realtime tables setup completed'))
+        .catch(error => logger_1.logger.error('Supabase setup error:', error));
 });
+/**
+ * Veritabanı bildirim triggerları için Supabase bağlantısı kurar
+ */
+function setupNotificationTriggers() {
+    try {
+        // Notification tablosundaki eklemeleri dinle
+        const notificationChannel = supabase_1.supabase
+            .channel('db-notification-changes')
+            .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notification',
+        }, async (payload) => {
+            logger_1.logger.info(`Yeni bildirim algılandı! ID: ${payload.new.id}`);
+            // Yeni bildirim eklendiğinde push notification gönder
+            await notificationService_1.NotificationService.handleNewNotification(payload.new);
+        })
+            .subscribe((status) => {
+            logger_1.logger.info(`Bildirim trigger durumu: ${status}`);
+        });
+        // Uygulama kapanırken subscription'ı temizle
+        process.on('SIGINT', () => {
+            logger_1.logger.info('Notification trigger subscription cleaning up...');
+            supabase_1.supabase.removeChannel(notificationChannel);
+        });
+        logger_1.logger.info('Notification trigger system initialized');
+    }
+    catch (error) {
+        logger_1.logger.error('Error setting up notification triggers:', error);
+    }
+}
 exports.default = app;
 //# sourceMappingURL=app.js.map

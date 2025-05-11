@@ -17,8 +17,10 @@ import announcementRoutes from './routes/announcementRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import deviceRoutes from './routes/deviceRoutes';
 import mapsRoutes from './routes/mapsRoutes';
-import { setupRealtimeTables } from './config/supabase';
+import { setupRealtimeTables, supabase } from './config/supabase';
 import { userService } from './services/userService';
+import { logger } from './utils/logger';
+import { NotificationService } from './services/notificationService';
 
 
 
@@ -69,6 +71,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/maps', mapsRoutes);
 
+// Supabase bildirim trigger kurulumu
+setupNotificationTriggers();
+
 // 404 handler
 app.use((_: Request, res: Response) => {
   res.status(404).json({
@@ -93,11 +98,6 @@ app.use((err: any, _: Request, res: Response, __: NextFunction) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Supabase realtime özelliklerini başlat
-setupRealtimeTables()
-  .then(() => console.log('Supabase realtime yapılandırması başarıyla tamamlandı'))
-  .catch((err) => console.error('Supabase realtime yapılandırması başarısız:', err));
-
 // Zamanlanmış görevler
 // Süresi geçmiş etkinlikleri otomatik güncelleme görevi
 const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 saat (milisaniye cinsinden)
@@ -120,8 +120,48 @@ setInterval(async () => {
   }
 })();
 
-app.listen(PORT, () => {
-  console.log(`Server http://localhost:${PORT} adresinde çalışıyor`);
+export const server = app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+  setupRealtimeTables()
+    .then(() => logger.info('Supabase Realtime tables setup completed'))
+    .catch(error => logger.error('Supabase setup error:', error));
 });
+
+/**
+ * Veritabanı bildirim triggerları için Supabase bağlantısı kurar
+ */
+function setupNotificationTriggers() {
+  try {
+    // Notification tablosundaki eklemeleri dinle
+    const notificationChannel = supabase
+      .channel('db-notification-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notification',
+        },
+        async (payload) => {
+          logger.info(`Yeni bildirim algılandı! ID: ${payload.new.id}`);
+          // Yeni bildirim eklendiğinde push notification gönder
+          await NotificationService.handleNewNotification(payload.new);
+        }
+      )
+      .subscribe((status) => {
+        logger.info(`Bildirim trigger durumu: ${status}`);
+      });
+
+    // Uygulama kapanırken subscription'ı temizle
+    process.on('SIGINT', () => {
+      logger.info('Notification trigger subscription cleaning up...');
+      supabase.removeChannel(notificationChannel);
+    });
+
+    logger.info('Notification trigger system initialized');
+  } catch (error) {
+    logger.error('Error setting up notification triggers:', error);
+  }
+}
 
 export default app;

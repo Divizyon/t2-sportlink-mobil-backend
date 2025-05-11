@@ -27,7 +27,7 @@ exports.supabaseAdmin = supabaseServiceKey
         }
     })
     : null;
-// Supabase tablolarını oluşturmak için bu fonksiyonu kullanabilirsiniz
+// Supabase realtime tablolarını oluşturmak için bu fonksiyonu kullanabilirsiniz
 async function setupRealtimeTables() {
     try {
         console.log('Supabase bağlantısı başarılı!');
@@ -85,13 +85,51 @@ async function setupRealtimeTables() {
         else {
             console.log('realtime_notifications tablosu zaten mevcut.');
         }
+        // Bildirim tablosu için Postgres trigger fonksiyonu ve trigger'ı oluştur
+        console.log('Notification trigger fonksiyonu oluşturuluyor...');
+        const { error: triggerError } = await exports.supabaseAdmin.rpc('exec_sql', {
+            sql: `
+        -- Bildirim eklendiğinde realtime_notifications tablosuna ekleyen trigger fonksiyonu
+        CREATE OR REPLACE FUNCTION public.handle_notification_insert()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          INSERT INTO public.realtime_notifications(
+            user_id, notification_id, title, body, data, type
+          )
+          VALUES (
+            NEW.user_id, 
+            NEW.id, 
+            NEW.title, 
+            NEW.body, 
+            NEW.data, 
+            NEW.type
+          );
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+        
+        -- Eğer trigger varsa düşür
+        DROP TRIGGER IF EXISTS notification_insert_trigger ON public.notification;
+        
+        -- Trigger oluştur
+        CREATE TRIGGER notification_insert_trigger
+        AFTER INSERT ON public.notification
+        FOR EACH ROW
+        EXECUTE FUNCTION public.handle_notification_insert();
+      `
+        });
+        if (triggerError) {
+            console.error('Notification trigger oluşturma hatası:', triggerError);
+            throw triggerError;
+        }
+        console.log('Notification trigger başarıyla oluşturuldu!');
         // Supabase'in Realtime özelliğini etkinleştir
         const { error: realtimeError } = await exports.supabaseAdmin.rpc('exec_sql', {
             sql: `
         BEGIN;
-        -- Realtime publish yapılabilecek tabloyu belirt
+        -- Realtime publish yapılabilecek tabloları belirt
         CALL supabase_functions.notify_functions('realtime_notifications_change', 
-        ARRAY['realtime_notifications'], 'public', '{"event":"*","schema":"public","table":"realtime_notifications","columns":"*"}');
+        ARRAY['realtime_notifications', 'notification'], 'public', '{"event":"*","schema":"public","table":"*","columns":"*"}');
         COMMIT;
       `
         });

@@ -71,6 +71,19 @@ Daha fazla bilgi için API dokümantasyonuna bakın.
 - `npm run format` - Kodu formatlar
 - `npm test` - Testleri çalıştırır
 
+### Push Notification Sistemi
+
+Sistem, Expo Push Notification servisi ile entegre çalışır ve otomatik bildirim gönderme özelliğine sahiptir:
+
+- **Expo Push Token Yönetimi:** Kullanıcıların bildirimleri alabilmesi için cihaz token'ları sistem tarafından saklanır.
+- **Otomatik Bildirimler:** Veritabanına yeni bir bildirim eklendiğinde, Supabase trigger ve WebSocket aracılığıyla kullanıcılara otomatik olarak push bildirimi gönderilir.
+- **Token Endpoint'leri:**
+  - `POST /api/devices/register` - Cihaz token'ı kaydet
+  - `POST /api/devices/unregister` - Cihaz token'ı sil
+  - `GET /api/devices/my-devices` - Kullanıcının kayıtlı cihazlarını listele
+
+Expo Push Notification gönderimi için `expo-server-sdk` kütüphanesi kullanılır. Bildirim gönderme işlemi hem manuel hem de otomatik triggerlar ile gerçekleştirilebilir.
+
 ### Klasör Yapısı
 
 ```

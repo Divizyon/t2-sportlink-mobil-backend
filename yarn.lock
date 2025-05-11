@@ -326,10 +326,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@esbuild/win32-x64@0.25.3":
+"@esbuild/darwin-arm64@0.25.3":
   version "0.25.3"
-  resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.3.tgz"
-  integrity sha512-ICgUR+kPimx0vvRzf+N/7L7tVSQeE3BYY+NhHRHXS1kBuPO7z2+7ea2HbhDyZdTephgvNvKrlDDKUexuCVBVvg==
+  resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.25.3.tgz"
+  integrity sha512-eESK5yfPNTqpAmDfFWNsOhmIOaQA59tAcF/EfYvo5/QWQCzXn5iUSOnqt3ra3UdzBv073ykTtmeLJZGt3HhA+w==
 
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.5.1"
